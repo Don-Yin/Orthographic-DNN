@@ -1,0 +1,45 @@
+# venv
+.venv
+
+# vscode
+.vscode
+
+# vscode counter
+.VSCodeCounter/
+
+# data files
+*.png
+
+# system
+.DS_Store
+
+# temp files
+*.pyc
+*.ipynb
+~$*
+
+#
+assets/model_cache/*
+raytune_results/*
+.neptune/*
+
+
+*.xlsx
+*.csv
+*.onnx
+
+results/
+assets/model_all_layers/
+assets/image_raw_cosine_similarity/
+
+## data
+params/
+match_calculation/
+
+
+## jsons
+assets/model_eval_combinations.json
+position_corrected.json
+normalization_stats.json
+all_layers.json
+normal.json

@@ -1,0 +1,10 @@
+[
+  "Absolute",
+  "Vowel-centric(L-R)",
+  "Vowel-centric(R-L)",
+  "Ends-first",
+  "SOLAR(Spatial_Coding)",
+  "Binary_Open_Bigram",
+  "Overlap_Open_Bigram(OOB)",
+  "SERIOL_2001_(Open_Bigram)"
+]

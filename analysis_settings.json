@@ -1,0 +1,39 @@
+{
+    "result": "normal",
+    "prime_data_folder": "prime_data_normal",
+    "model_final_data_name": "normal.json",
+    "model_all_layers_data_name": "normal.json",
+    "image_raw_similarity_name": "normal.json",
+    "correlation_method": "kendall",
+    "solar_duration": "2000",
+    "force_process": true,
+    "categories": [
+        "Human priming",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Convolutional DNNs",
+        "Vision Transformer",
+        "Baselines",
+        "Baselines",
+        "Baselines"
+    ],
+    "categories_model_score": [
+        "Model Performance",
+        "Model Performance",
+        "Brain-Score",
+        "Brain-Score",
+        "Brain-Score",
+        "Brain-Score",
+        "Brain-Score",
+        "Brain-Score",
+        "Priming Accountability"
+    ],
+    "label_human_priming_data_in_main_matrix": "Priming ARB",
+    "label_human_priming_data_in_model_score_matrix": "Priming Accountability",
+    "label_model_ridge_plot_x_axis": "Cosine Similarity",
+    "label_human_data_ridge_plot_x_axis": "Priming ARB"
+}

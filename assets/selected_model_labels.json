@@ -1,0 +1,10 @@
+{
+    "alexnet": "AlexNet",
+    "densenet169": "DenseNet169",
+    "efficientnet_b1": "EfficientNet-B1",
+    "resnet50": "ResNet50",
+    "resnet101": "ResNet101",
+    "vgg16": "VGG16",
+    "vgg19": "VGG19",
+    "vit_l_16": "ViT-L/16"
+}
