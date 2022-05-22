@@ -31,7 +31,10 @@ if __name__ == "__main__":
             self.resnet101 = torchvision.models.resnet101(pretrained=True, progress=True)
             self.vgg16 = torchvision.models.vgg16(pretrained=True, progress=True)
             self.vgg19 = torchvision.models.vgg19(pretrained=True, progress=True)
+            self.vit_b_16 = torchvision.models.vit_b_16(pretrained=True, progress=True)
+            self.vit_b_32 = torchvision.models.vit_b_32(pretrained=True, progress=True)
             self.vit_l_16 = torchvision.models.vit_l_16(pretrained=True, progress=True)
+            self.vit_l_32 = torchvision.models.vit_l_32(pretrained=True, progress=True)
 
         def read_model_list(self):
             self.selected_network_names = json.load(open(Path("assets", "selected_models.json"), "r"))
@@ -52,13 +55,13 @@ if __name__ == "__main__":
             "function_optimizer": torch.optim.Adam,
             "function_loss": functional.cross_entropy,
             "rate_learning": (1e-5) / 3,
-            "size_batch": 32,
+            "size_batch": 4,
             "num_epochs": 1,
             "weight_decay": 0.0001,
-            "min_moving_average_threshold": 0.01,
-            "batch_report_every": 32,
-            "batch_save_every": 256,
+            "min_moving_average_threshold": 0.0025,
+            "batch_report_every": 8,
+            "batch_save_every": 128,
             "cuda_available": cuda_available,
         }
 
-    Train(get_hyperparameters(2)).fit()
+    Train(get_hyperparameters(10)).fit()

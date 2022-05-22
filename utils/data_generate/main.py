@@ -251,9 +251,10 @@ def init_create_train_data(dummy: bool = False):
         for c in combinations_variation
     ]
 
-    generated_files = [file.name for file in Path("data").rglob("*.png")]
+    generated_files = [file.name for file in Path("data", "data_all").rglob("*.png")]
 
-    combinations_variation = [c for c in combinations_variation if c["name_save"] not in generated_files]
+    if generated_files:
+        combinations_variation = [c for c in combinations_variation if c["name_save"] not in tqdm(generated_files)]
 
     create = CreateData(mode="main")
 

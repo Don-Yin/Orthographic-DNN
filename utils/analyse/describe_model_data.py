@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy
 import pandas
+from tqdm import tqdm
 from utils.plot.ridge_plot import RidgePlot
 
 
@@ -21,6 +22,11 @@ class DescribeModelData:
             self.set_descriptive_data()
             self.plot_ridge()
 
+    def translate_all_layers_data_to_penultimate(self):
+        data = json.load(open(Path("assets", "model_all_layers", self.analysis_settings["model_all_layers_data_name"]), "r"))
+        for i in tqdm(range(len(data))):
+            data[i]["cosine_similarities"] = data[i]["cosine_similarities"][-2]
+
     def read_selected_model_names(self):
         self.selected_model_names = json.load(open(Path("assets", "selected_models.json"), "r"))
 
@@ -29,8 +35,10 @@ class DescribeModelData:
 
     def read_data(self):
         self.data_main = json.load(
-            open(Path("assets", "model_final_data", self.analysis_settings["model_final_data_name"]), "r")
+            open(Path("assets", "model_all_layers", self.analysis_settings["model_all_layers_data_name"]), "r")
         )
+        for i in range(len(self.data_main)):
+            self.data_main[i]["cosine_similarities"] = self.data_main[i]["cosine_similarities"][-2]
 
     def dict_error_correction(self):
         # correct labeling error + translate primes from list to str
@@ -43,9 +51,9 @@ class DescribeModelData:
     def to_dataframe(self):
         self.data_main = pandas.DataFrame(self.data_main)
         self.data_main = self.data_main.loc[self.data_main["model"] == self.which_model]
-        self.data_main = self.data_main[["similarity_penultimate", "primes"]]
+        self.data_main = self.data_main[["cosine_similarities", "primes"]]
         self.data_main.rename(
-            {"similarity_penultimate": self.analysis_settings["label_model_ridge_plot_x_axis"]}, axis=1, inplace=True
+            {"cosine_similarities": self.analysis_settings["label_model_ridge_plot_x_axis"]}, axis=1, inplace=True
         )
 
     def set_descriptive_data(self):

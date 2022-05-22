@@ -45,7 +45,7 @@ class BatchEvaluate:
     https://stackoverflow.com/questions/20638006/convert-list-of-dictionaries-to-a-pandas-dataframe
     """
 
-    def __init__(self, validate: True):
+    def __init__(self, validate: False):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
         self.path_output = Path("assets", "model_output", "normal.json")
         self.validate = validate
@@ -68,7 +68,8 @@ class BatchEvaluate:
 
     def read_prime_data(self):
         self.prime_data = add_compute_stats(torch_image_folder)(
-            root=str(Path("data") / self.analysis_settings["prime_data_folder"]), stats=json.load(open(Path("data", "normalization_stats.json"), "r"))
+            root=str(Path("data") / self.analysis_settings["prime_data_folder"]),
+            stats=json.load(open(Path("data", "normalization_stats.json"), "r")),
         )
 
     def make_combinations(self):
@@ -136,10 +137,13 @@ class BatchEvaluate:
         self.resnet101 = torchvision.models.resnet101(pretrained=False)
         self.vgg16 = torchvision.models.vgg16(pretrained=False)
         self.vgg19 = torchvision.models.vgg19(pretrained=False)
+        self.vit_b_16 = torchvision.models.vit_b_16(pretrained=False)
+        self.vit_b_32 = torchvision.models.vit_b_32(pretrained=False)
         self.vit_l_16 = torchvision.models.vit_l_16(pretrained=False)
+        self.vit_l_32 = torchvision.models.vit_l_32(pretrained=False)
 
         for model in self.selected_network_names:
-        # for model in ["vit_l_16"]:
+            # for model in ["vit_l_16"]:
             getattr(self, model).load_state_dict(torch.load(Path("params", f"{model}.pth")))
             getattr(self, model).eval()
             device_allocator(getattr(self, model))
@@ -149,4 +153,4 @@ class BatchEvaluate:
 
 
 if __name__ == "__main__":
-    BatchEvaluate(validate=True)
+    BatchEvaluate(validate=False)

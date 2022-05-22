@@ -44,6 +44,9 @@ class ProcessMatchCalculatorData:
     def read_calculator_result_from_csv(self):
         self.calculator_result_csv = pandas.read_csv(Path("assets", "match_calculator_result.csv"), index_col=False)
 
+        for unwanted in ["Vowel-centric(L-R)", "Vowel-centric(R-L)", "Ends-first"]:
+            self.calculator_result_csv.drop(unwanted, inplace=True, axis=1)
+
     def append_match_value_unrelated_strings(self):
         for D in self.prime_data:
             dummy_dict = D
@@ -55,9 +58,9 @@ class ProcessMatchCalculatorData:
                             "ID": D["ID"],
                             "prime": D[key],
                             "Absolute": 0,
-                            "Vowel-centric(L-R)": 0,
-                            "Vowel-centric(R-L)": 0,
-                            "Ends-first": 0,
+                            # "Vowel-centric(L-R)": 0,
+                            # "Vowel-centric(R-L)": 0,
+                            # "Ends-first": 0,
                             "SOLAR(Spatial_Coding)": 0,
                             "Binary_Open_Bigram": 0,
                             "Overlap_Open_Bigram(OOB)": 0,
@@ -88,12 +91,10 @@ class ProcessMatchCalculatorData:
 
 
 class MakeMatchCalculatorData:
-    """Output a txt file to feed to the match calculator
-    """
+    """Output a txt file to feed to the match calculator"""
 
     def __init__(self):
-        """Note: remove the strings that share 0 letters
-        """
+        """Note: remove the strings that share 0 letters"""
         self.read_prime_data()
         self.main()
 

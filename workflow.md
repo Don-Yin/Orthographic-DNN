@@ -1,6 +1,6 @@
 ## Install cuda + pytorch
 1. install cuda driver
-2. correct version of pytorch on pytorch.org
+2. correct version of pytorch on pytorch.org - >= torch-1.11.0
 
 ## Run on server
 1. build docker image: 
@@ -18,7 +18,6 @@
 ## tmux
 previous session: tmux a
 detach previous session: control b (pause) d
-
 
 ## Server
 check current folder size: 

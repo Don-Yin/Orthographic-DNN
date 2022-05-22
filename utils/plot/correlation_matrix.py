@@ -21,8 +21,6 @@ class CorrelationMatrix:
         which_plot: str = "main",
         human_data_label: str = None,
     ):
-        sns.set_theme(font_scale=1.3, style="white")
-        self.font_size = 18
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
         self.dataframe = dataframe
         self.method = method
@@ -40,9 +38,13 @@ class CorrelationMatrix:
             getattr(self, which_plot[0])(which_plot[1])
 
     def main(self):
+        sns.set_theme(font_scale=1.3, style="white")
+        self.font_size = 14
         # Compute the correlation matrix
         self.corr = self.dataframe.corr(method=self._get_correlation_callable)
-        corr_models = self.corr[self.human_data_label].loc[json.load(open(Path("assets", "selected_model_labels.json"), "r")).values()]
+        corr_models = self.corr[self.human_data_label].loc[
+            json.load(open(Path("assets", "selected_model_labels.json"), "r")).values()
+        ]
         corr_models.to_csv(Path("results", self.analysis_settings["result"], "corr_models.csv"))
 
         # create a mask dataframe with p* labels
@@ -97,6 +99,8 @@ class CorrelationMatrix:
         self.svm.get_figure().savefig(self.path_save, dpi=400)
 
     def side(self, name):
+        sns.set_theme(font_scale=1.3, style="white")
+        self.font_size = 24
         all_types = list(set(self.analysis_settings["categories"]))
         all_types.remove(name)
 
@@ -154,6 +158,8 @@ class CorrelationMatrix:
         svm.get_figure().savefig(Path("results", self.analysis_settings["result"], f"{name}.png"), dpi=400)
 
     def model_score(self):
+        sns.set_theme(font_scale=1.3, style="white")
+        self.font_size = 18
         # Compute the correlation matrix
         self.corr = self.dataframe.corr(method=self._get_correlation_callable)
 

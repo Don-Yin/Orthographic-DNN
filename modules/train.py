@@ -109,7 +109,7 @@ class Train:
                 root=str(Path("data") / "data_train"), stats=normalization_stats
             )
 
-    def init_neptune(self):        
+    def init_neptune(self):
         neptune_token = json.load(open(Path("assets", "neptune_token.json"), "r"))
         self.neptune_run = neptune.init(project=neptune_token["project"], api_token=neptune_token["api_token"],)
         self.neptune_run["hyperparameters"] = self.hyperparameters

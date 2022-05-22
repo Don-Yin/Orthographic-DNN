@@ -36,7 +36,6 @@ class Analyse:
             f"solar_model_target_duration_{self.solar_duration}.csv",
         )
         self.path_levenshtein_data = Path("results", self.analysis_settings["result"], "levenshtein", "levenshtein.csv")
-        self.path_old20_data = Path("results", self.analysis_settings["result"], "levenshtein", "old20.csv")
         self.path_output_correlation_matrix_main = Path(
             "results", self.analysis_settings["result"], "correlation_matrix_main.png"
         )
@@ -46,6 +45,7 @@ class Analyse:
         self.path_image_raw_cosine_similarity_data = Path(
             "assets", "image_raw_cosine_similarity", self.analysis_settings["image_raw_similarity_name"]
         )
+        self.path_match_value_data = Path("results", self.analysis_settings["result"], "match_value", "Absolute.csv")
         self.path_processed_image_raw_cosine_similarity_data = Path(
             "results", self.analysis_settings["result"], "image_raw_cosine_similarity", "image_raw_cosine_similarity.csv"
         )
@@ -60,23 +60,26 @@ class Analyse:
         self.create_human_data()
 
         self.create_model_data()
+        self.create_match_value_data()
         self.create_solar_model_data()
         self.create_levenshtein_data()
         self.create_image_raw_cosine_similarity_data()
         self.create_cosine_similarity_layer_wise_data()
 
         self.read_descriptive_stats_human()
+
+        # ----DNN models----
         self.join_model_data()
-        self.join_image_raw_cosine_similarity()
-        self.join_levenshtein()
+
+        # ----match values----
+        self.join_descriptive_stats_match_value()
+
+        # ----full models----
         self.join_solar_data()
 
-        # self.create_old20_data()
-        # self.join_old20()
-
-        # self.path_match_value_data = Path("results", self.analysis_settings["result"], "match_value", "Absolute.csv")
-        # self.create_match_value_data()
-        # self.join_descriptive_stats_match_value()
+        # ----baselines----
+        self.join_image_raw_cosine_similarity()
+        self.join_levenshtein()
 
         self.create_cosine_similarity_layer_wise_data()
 
@@ -101,7 +104,7 @@ class Analyse:
                 )
             )
             self.ensure_one_folder(Path("results", self.analysis_settings["result"], "human"))
-            # self.ensure_one_folder(Path("results", self.analysis_settings["result"], "match_value"))
+            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "match_value"))
             self.ensure_one_folder(Path("results", self.analysis_settings["result"], "model"))
             self.ensure_one_folder(Path("results", self.analysis_settings["result"], "model_architecture"))
             self.ensure_one_folder(Path("results", self.analysis_settings["result"], "solar_model"))
@@ -133,10 +136,6 @@ class Analyse:
     def create_levenshtein_data(self):
         if (not os.path.exists(self.path_levenshtein_data)) or self.force_process:
             DescribeLevenshtein(target_file="levenshtein")
-
-    def create_old20_data(self):
-        if (not os.path.exists(self.path_old20_data)) or self.force_process:
-            DescribeLevenshtein(target_file="old20")
 
     def create_image_raw_cosine_similarity_data(self):
         if (not os.path.exists(self.path_image_raw_cosine_similarity_data)) or self.force_process:
@@ -178,12 +177,6 @@ class Analyse:
         dataframe = pandas.read_csv(self.path_levenshtein_data, index_col=[0])
         dataframe = dataframe[["mean"]]
         dataframe.rename({"mean": "LD"}, axis=1, inplace=True)
-        self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
-
-    def join_old20(self):
-        dataframe = pandas.read_csv(self.path_old20_data, index_col=[0])
-        dataframe = dataframe[["mean"]]
-        dataframe.rename({"mean": "OLD20"}, axis=1, inplace=True)
         self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
 
     def join_image_raw_cosine_similarity(self):

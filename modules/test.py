@@ -12,7 +12,6 @@ import torch
 import torchvision
 from torchvision.datasets import ImageFolder as torch_image_folder
 from tqdm import tqdm
-
 from utils.data_generate.read_corpus import read_corpus
 from utils.data_load.device_control import device_allocator
 from utils.data_load.normalize import add_compute_stats
