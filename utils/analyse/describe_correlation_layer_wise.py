@@ -14,12 +14,13 @@ class DescribeCosineSimilarityLayerWise:
     def __init__(self, to_which="human"):
         self.to_which = to_which
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
+        self.dnn_model_labels = json.load(open(Path("assets", "dnn_model_labels.json"), "r"))
+        self.selected_model_names = self.dnn_model_labels.keys()
         self.sorter = json.load(open(Path("assets", "sorter_human_data.json"), "r"))
         self.method = self.analysis_settings["correlation_method"]
 
         self.read_data()
         self.read_error_dict()
-        self.read_selected_model_names()
         self.read_descriptive_stats_human()
         self.read_descriptive_stats_image_raw_cosine_similarity()
         self.dict_error_correction()
@@ -38,9 +39,6 @@ class DescribeCosineSimilarityLayerWise:
         self.dataframe = json.load(
             open(Path("assets", "model_all_layers", self.analysis_settings["model_all_layers_data_name"]), "r")
         )
-
-    def read_selected_model_names(self):
-        self.selected_model_names = json.load(open(Path("assets", "selected_models.json"), "r"))
 
     def read_descriptive_stats_human(self):
         self.data_descriptive_human = self._read_descriptive_csv(
@@ -85,19 +83,19 @@ class DescribeCosineSimilarityLayerWise:
         )
 
         self.correlation_layer_wise_frame["Model"] = self.correlation_layer_wise_frame["Model"].replace(
-            json.load(open(Path("assets", "selected_model_labels.json"), "r"))
+            self.dnn_model_labels
         )
 
         if self.to_which == "human":
             self.correlation_layer_wise_frame.to_csv(
-                Path("results", self.analysis_settings["result"], "correlation_layer_wise", "correlation_layer_wise.csv"),
+                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.csv"),
                 index=False,
             )
         elif self.to_which == "raw_image":
             self.correlation_layer_wise_frame.to_csv(
                 Path(
                     "results",
-                    self.analysis_settings["result"],
+                    self.analysis_settings["result_folder"],
                     "correlation_layer_wise",
                     "correlation_layer_wise_with_raw_image.csv",
                 ),
@@ -108,18 +106,18 @@ class DescribeCosineSimilarityLayerWise:
         sns.set_theme(style="white", font_scale=1.3)
         if self.to_which == "human":
             data = pandas.read_csv(
-                Path("results", self.analysis_settings["result"], "correlation_layer_wise", "correlation_layer_wise.csv")
+                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.csv")
             )
-            data['Correlation Coefficient τ'] = data['Correlation Coefficient τ'].rolling(10, center=True).mean()
+            data["Correlation Coefficient τ"] = data["Correlation Coefficient τ"].rolling(10, center=True).mean()
             plt.figure(figsize=(30, 14))
             sns.lineplot(x="Layer", y="Correlation Coefficient τ", hue="Model", data=data).figure.savefig(
-                Path("results", self.analysis_settings["result"], "correlation_layer_wise", "correlation_layer_wise.png")
+                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.png")
             )
         elif self.to_which == "raw_image":
             data = pandas.read_csv(
                 Path(
                     "results",
-                    self.analysis_settings["result"],
+                    self.analysis_settings["result_folder"],
                     "correlation_layer_wise",
                     "correlation_layer_wise_with_raw_image.csv",
                 )
@@ -128,7 +126,7 @@ class DescribeCosineSimilarityLayerWise:
             sns.lineplot(x="Layer", y="Correlation Coefficient τ", hue="Model", data=data).figure.savefig(
                 Path(
                     "results",
-                    self.analysis_settings["result"],
+                    self.analysis_settings["result_folder"],
                     "correlation_layer_wise",
                     "correlation_layer_wise_with_raw_image.png",
                 )
@@ -185,7 +183,7 @@ class DescribeCosineSimilarityLayerWise:
         path = (
             Path(
                 "results",
-                self.analysis_settings["result"],
+                self.analysis_settings["result_folder"],
             )
             / sub_folder
             / file_name

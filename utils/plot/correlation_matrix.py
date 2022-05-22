@@ -30,6 +30,7 @@ class CorrelationMatrix:
         self.adjust_left = adjust_left
         self.categories = self.analysis_settings["categories"]
         self.categories_model_score = self.analysis_settings["categories_model_score"]
+        self.dnn_model_labels = json.load(open(Path("assets", "dnn_model_labels.json"), "r"))
         self.human_data_label = human_data_label
 
         if type(which_plot) == str:
@@ -42,10 +43,8 @@ class CorrelationMatrix:
         self.font_size = 14
         # Compute the correlation matrix
         self.corr = self.dataframe.corr(method=self._get_correlation_callable)
-        corr_models = self.corr[self.human_data_label].loc[
-            json.load(open(Path("assets", "selected_model_labels.json"), "r")).values()
-        ]
-        corr_models.to_csv(Path("results", self.analysis_settings["result"], "corr_models.csv"))
+        corr_models = self.corr[self.human_data_label].loc[self.dnn_model_labels.values()]
+        corr_models.to_csv(Path("results", self.analysis_settings["result_folder"], "corr_models.csv"))
 
         # create a mask dataframe with p* labels
         p_vals = self._get_p_vals()
@@ -136,7 +135,7 @@ class CorrelationMatrix:
         p_vals = p_vals.applymap(lambda x: "".join(["*" for t in [0.01, 0.05, 0.1] if x <= t]))
         self.corr_with_p: pandas.DataFrame = self.corr.round(2).astype(str) + p_vals
         self.corr_with_p = self.corr_with_p.replace({"0\.": "."}, regex=True)
-        self.corr_with_p.to_csv(Path("results", self.analysis_settings["result"], "corr_models_with_mask.csv"))
+        self.corr_with_p.to_csv(Path("results", self.analysis_settings["result_folder"], "corr_models_with_mask.csv"))
 
         cmap = sns.diverging_palette(230, 20, as_cmap=True)
 
@@ -155,7 +154,7 @@ class CorrelationMatrix:
             annot_kws={"size": self.font_size},
         )
 
-        svm.get_figure().savefig(Path("results", self.analysis_settings["result"], f"{name}.png"), dpi=400)
+        svm.get_figure().savefig(Path("results", self.analysis_settings["result_folder"], f"{name}.png"), dpi=400)
 
     def model_score(self):
         sns.set_theme(font_scale=1.3, style="white")

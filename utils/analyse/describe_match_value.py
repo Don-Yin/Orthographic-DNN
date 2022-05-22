@@ -9,9 +9,9 @@ from utils.plot.ridge_plot import RidgePlot
 class DescribeMatchValue:
     def __init__(self):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
-        conceptual_models = json.load(open(Path("assets", "conceptual_models.json"), "r"))
+        coding_schemes = json.load(open(Path("assets", "coding_schemes.json"), "r"))
         self.sorter = json.load(open(Path("assets", "sorter_human_data.json"), "r"))
-        for model in conceptual_models:
+        for model in coding_schemes:
             self.which_conceptual_model = model
             self.read_data()
             self.select_col()
@@ -30,7 +30,7 @@ class DescribeMatchValue:
         """
         self.descriptive_stats = self.data.groupby("prime_type").describe()
         self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result"], "match_value", f"{self.which_conceptual_model}.csv"))
+        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "match_value", f"{self.which_conceptual_model}.csv"))
 
     def plot_ridge(self):
         dummy_data = self.data.copy()
@@ -43,7 +43,7 @@ class DescribeMatchValue:
                 name_save=f"{self.which_conceptual_model}.png",
                 hue_level=len(self.sorter),
                 means=list(self.descriptive_stats[(self.which_conceptual_model, "mean")]),
-                path_save=Path("results", self.analysis_settings["result"], "match_value"),
+                path_save=Path("results", self.analysis_settings["result_folder"], "match_value"),
                 draw_density=False,
                 whether_double_extreme_lines=False,
             )

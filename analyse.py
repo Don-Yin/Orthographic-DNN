@@ -20,117 +20,120 @@ from utils.plot.correlation_matrix import CorrelationMatrix
 class Analyse:
     def __init__(self):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
-        self.selected_model_labels = json.load(open(Path("assets", "selected_model_labels.json"), "r"))
+        self.dnn_model_labels = json.load(open(Path("assets", "dnn_model_labels.json"), "r"))
+        self.conceptual_model_names = json.load(open(Path("assets", "coding_schemes.json"), "r"))
+
         self.correlation_method = self.analysis_settings["correlation_method"]  # kendall/spearman/pearson
         self.solar_duration = self.analysis_settings["solar_duration"]
         self.force_process = self.analysis_settings["force_process"]
 
-        self.ensure_folders()
+        self.make_folders()
 
-        self.path_human_data = Path("results", self.analysis_settings["result"], "human", "descriptive_stats_human_data.csv")
-        self.path_model_data = Path("results", self.analysis_settings["result"], "model", "alexnet.csv")
-        self.path_solar_model_data = Path(
-            "results",
-            self.analysis_settings["result"],
-            "solar_model",
-            f"solar_model_target_duration_{self.solar_duration}.csv",
-        )
-        self.path_levenshtein_data = Path("results", self.analysis_settings["result"], "levenshtein", "levenshtein.csv")
-        self.path_output_correlation_matrix_main = Path(
-            "results", self.analysis_settings["result"], "correlation_matrix_main.png"
-        )
-        self.path_output_correlation_matrix_model_score = Path(
-            "results", self.analysis_settings["result"], "correlation_matrix_model_score.png"
-        )
+        # ----paths base----
+        self.path_result_base = Path("results", self.analysis_settings["result_folder"])
+
+        # ----paths folder----
+        self.path_folder_human_data = self.path_result_base / "human"
+        self.path_folder_model_data = self.path_result_base / "model"
+        self.path_folder_match_value_data = self.path_result_base / "match_value"
+        self.path_folder_correlation_layer_wise = self.path_result_base / "correlation_layer_wise"
+
+        # ----paths objects----
+        self.path_output_correlation_matrix_main = self.path_result_base / "correlation_matrix_main.png"
+        self.path_output_correlation_matrix_model_score = self.path_result_base / "correlation_matrix_model_score.png"
+        self.path_levenshtein_data = self.path_result_base / "levenshtein" / "levenshtein.csv"
+        self.path_scm_data = self.path_result_base / "scm" / f"solar_model_target_duration_{self.solar_duration}.csv"
+        self.path_descriptive_stats_main = self.path_result_base / "descriptive_stats_main.csv"
+
+        # ---paths assets----
         self.path_image_raw_cosine_similarity_data = Path(
             "assets", "image_raw_cosine_similarity", self.analysis_settings["image_raw_similarity_name"]
         )
-        self.path_match_value_data = Path("results", self.analysis_settings["result"], "match_value", "Absolute.csv")
-        self.path_processed_image_raw_cosine_similarity_data = Path(
-            "results", self.analysis_settings["result"], "image_raw_cosine_similarity", "image_raw_cosine_similarity.csv"
-        )
-        self.path_cosine_similarity_layer_wise = Path(
-            "results", self.analysis_settings["result"], "cosine_similarity_layer_wise", "cosine_similarity_layer_wise.csv"
-        )
-        self.path_descriptive_stats_main = Path("results", self.analysis_settings["result"], "descriptive_stats_main.csv")
 
-        self.conceptual_model_names = json.load(open(Path("assets", "conceptual_models.json"), "r"))
-        self.neural_networks_names = json.load(open(Path("assets", "selected_models.json"), "r"))
-
+        # ----make data----
         self.create_human_data()
-
-        self.create_model_data()
+        self.create_dnn_data()
         self.create_match_value_data()
-        self.create_solar_model_data()
+        self.create_scm_data()
         self.create_levenshtein_data()
         self.create_image_raw_cosine_similarity_data()
         self.create_cosine_similarity_layer_wise_data()
 
+        # ----initialise----
         self.read_descriptive_stats_human()
 
         # ----DNN models----
-        self.join_model_data()
+        self.join_dnn_data()
 
         # ----match values----
         self.join_descriptive_stats_match_value()
 
-        # ----full models----
-        self.join_solar_data()
+        # ----full priming models----
+        self.join_scm_data()
 
         # ----baselines----
         self.join_image_raw_cosine_similarity()
         self.join_levenshtein()
 
+        # ----layer-wise----
         self.create_cosine_similarity_layer_wise_data()
 
         self.save_descriptive_stats()
         self.draw_correlation_matrix()
         self.draw_correlation_matrix_model_scores()
 
-    def ensure_folders(self):
+    def make_folders(self):
         if (
             not os.path.exists(
                 Path(
                     "results",
-                    self.analysis_settings["result"],
+                    self.analysis_settings["result_folder"],
                 )
             )
             or self.force_process
         ):
-            self.ensure_one_folder(
+            os.makedirs(
                 Path(
                     "results",
-                    self.analysis_settings["result"],
-                )
+                    self.analysis_settings["result_folder"],
+                ),
+                exist_ok=True,
             )
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "human"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "match_value"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "model"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "model_architecture"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "solar_model"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "levenshtein"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "image_raw_cosine_similarity"))
-            self.ensure_one_folder(Path("results", self.analysis_settings["result"], "correlation_layer_wise"))
 
-    def ensure_one_folder(self, path):
-        if not os.path.exists(path):
-            os.mkdir(path)
+            for i in [
+                "human",
+                "match_value",
+                "model",
+                "scm",
+                "levenshtein",
+                "image_raw_cosine_similarity",
+                "cosine_similarity_layer_wise",
+                "correlation_layer_wise",
+            ]:
+                os.makedirs(
+                    Path(
+                        "results",
+                        self.analysis_settings["result_folder"],
+                        i,
+                    ),
+                    exist_ok=True,
+                )
 
     def create_human_data(self):
-        if (not os.path.exists(self.path_human_data)) or self.force_process:
+        if not os.listdir(self.path_folder_human_data) or self.force_process:
             DescribeHumanData()
 
     def create_match_value_data(self):
-        if (not os.path.exists(self.path_match_value_data)) or self.force_process:
+        if not os.listdir(self.path_folder_match_value_data) or self.force_process:
             ProcessMatchCalculatorData()
             DescribeMatchValue()
 
-    def create_model_data(self):
-        if (not os.path.exists(self.path_model_data)) or self.force_process:
+    def create_dnn_data(self):
+        if not os.listdir(self.path_folder_model_data) or self.force_process:
             DescribeModelData()
 
-    def create_solar_model_data(self):
-        if (not os.path.exists(self.path_solar_model_data)) or self.force_process:
+    def create_scm_data(self):
+        if (not os.path.exists(self.path_scm_data)) or self.force_process:
             DescribeSolarData(duration=self.solar_duration)
 
     def create_levenshtein_data(self):
@@ -143,9 +146,11 @@ class Analyse:
             DescribeImageRawSimilarity()
 
     def create_cosine_similarity_layer_wise_data(self):
-        if (not os.path.exists(self.path_cosine_similarity_layer_wise)) or self.force_process:
+        if not os.listdir(self.path_folder_correlation_layer_wise) or self.force_process:
             DescribeCosineSimilarityLayerWise(to_which="human")
             DescribeCosineSimilarityLayerWise(to_which="raw_image")
+
+    # ----join data----
 
     def read_descriptive_stats_human(self):
         self.data_descriptive_main = self._read_descriptive_csv(
@@ -160,15 +165,15 @@ class Analyse:
             dataframe = dataframe[[name]]
             self.data_descriptive_main = self.data_descriptive_main.join(dataframe)
 
-    def join_model_data(self):
-        for name in self.neural_networks_names:
+    def join_dnn_data(self):
+        for name in self.dnn_model_labels.keys():
             descriptive_stats = self._read_descriptive_csv(drop_row="primes", sub_folder="model", file_name=f"{name}.csv")
             descriptive_stats = descriptive_stats[["mean"]]
             descriptive_stats.rename({"mean": name}, axis=1, inplace=True)
             self.data_descriptive_main = self.data_descriptive_main.join(descriptive_stats)
 
-    def join_solar_data(self):
-        dataframe = pandas.read_csv(self.path_solar_model_data)
+    def join_scm_data(self):
+        dataframe = pandas.read_csv(self.path_scm_data)
         dataframe.rename({"Predicted RT": "SCM"}, axis=1, inplace=True)
         dataframe.set_index("prime_type", inplace=True)
         self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
@@ -195,7 +200,7 @@ class Analyse:
         dummy_dataframe.rename(
             {"priming_arb": self.analysis_settings["label_human_priming_data_in_main_matrix"]}, axis=1, inplace=True
         )
-        dummy_dataframe.rename(self.selected_model_labels, axis=1, inplace=True)
+        dummy_dataframe.rename(self.dnn_model_labels, axis=1, inplace=True)
 
         CorrelationMatrix(
             dataframe=dummy_dataframe,
@@ -223,7 +228,7 @@ class Analyse:
     def draw_correlation_matrix_model_scores(self):
         self.model_scores = pandas.read_csv(Path("assets", "model_scores.csv"), index_col=0)
         self.model_correlations = pandas.read_csv(
-            Path("results", self.analysis_settings["result"], "corr_models.csv"), index_col=0
+            Path("results", self.analysis_settings["result_folder"], "corr_models.csv"), index_col=0
         )
         self.model_scores = self.model_scores.join(self.model_correlations, how="left")
         dummy_dataframe = self.model_scores.copy()
@@ -253,7 +258,7 @@ class Analyse:
         path = (
             Path(
                 "results",
-                self.analysis_settings["result"],
+                self.analysis_settings["result_folder"],
             )
             / sub_folder
             / file_name

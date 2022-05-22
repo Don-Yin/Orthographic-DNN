@@ -28,7 +28,7 @@ class DescribeModelData:
             data[i]["cosine_similarities"] = data[i]["cosine_similarities"][-2]
 
     def read_selected_model_names(self):
-        self.selected_model_names = json.load(open(Path("assets", "selected_models.json"), "r"))
+        self.selected_model_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
 
     def read_error_dict(self):
         self.error_dict = json.load(open(Path("assets", "label_error.json"), "r"))
@@ -59,7 +59,7 @@ class DescribeModelData:
     def set_descriptive_data(self):
         self.descriptive_stats = self.data_main.groupby("primes").describe()
         self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result"], "model", f"{self.which_model}.csv"))
+        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "model", f"{self.which_model}.csv"))
 
     def plot_ridge(self):
         dummy_dataframe = self.data_main.copy()
@@ -74,7 +74,7 @@ class DescribeModelData:
                 name_save=f"{self.which_model}.png",
                 hue_level=len(self.sorter),
                 means=list(self.descriptive_stats[(self.analysis_settings["label_model_ridge_plot_x_axis"], "mean")]),
-                path_save=Path("results", self.analysis_settings["result"], "model"),
+                path_save=Path("results", self.analysis_settings["result_folder"], "model"),
                 draw_density=True,
                 whether_double_extreme_lines=False,
             )

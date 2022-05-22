@@ -11,7 +11,6 @@ import torch
 import torchvision
 from torchvision.datasets import ImageFolder as torch_image_folder
 from tqdm import tqdm
-
 from utils.data_generate.read_corpus import read_corpus
 from utils.data_load.device_control import device_allocator
 from utils.data_load.normalize import add_compute_stats
@@ -64,7 +63,7 @@ class BatchEvaluate:
         self.prime_types_2014 = read_corpus(Path("assets", "2014-prime-types.txt"))
 
     def read_selected_models(self):
-        self.selected_network_names = json.load(open(Path("assets", "selected_models.json"), "r"))
+        self.selected_network_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
 
     def read_prime_data(self):
         self.prime_data = add_compute_stats(torch_image_folder)(

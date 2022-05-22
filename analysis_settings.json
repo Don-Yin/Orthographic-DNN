@@ -1,5 +1,5 @@
 {
-    "result": "normal",
+    "result_folder": "normal",
     "prime_data_folder": "prime_data_normal",
     "model_final_data_name": "normal.json",
     "model_all_layers_data_name": "normal.json",

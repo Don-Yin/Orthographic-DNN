@@ -54,7 +54,7 @@ class DescribeHumanData:
             max(self.descriptive_stats[("RT", "mean")]) - self.descriptive_stats[("RT", "mean")]
         )
         self.descriptive_stats.to_csv(
-            Path("results", self.analysis_settings["result"], "human", "descriptive_stats_human_data.csv")
+            Path("results", self.analysis_settings["result_folder"], "human", "descriptive_stats_human_data.csv")
         )
 
     def plot_ridge(self):
@@ -94,7 +94,7 @@ class DescribeHumanData:
             name_save="human_data_ridge_plot.png",
             hue_level=len(sorter),
             means=list(self.descriptive_stats[("RT", "mean")]),
-            path_save=Path("results", self.analysis_settings["result"], "human"),
+            path_save=Path("results", self.analysis_settings["result_folder"], "human"),
         )
 
         dummy_data.rename({"RT": self.analysis_settings["label_human_data_ridge_plot_x_axis"]}, axis=1, inplace=True)
@@ -106,7 +106,7 @@ class DescribeHumanData:
             name_save="human_data_ridge_plot_priming_arb.png",
             hue_level=len(sorter),
             means=list(self.descriptive_stats[("RT", "priming_arb")]),
-            path_save=Path("results", self.analysis_settings["result"], "human"),
+            path_save=Path("results", self.analysis_settings["result_folder"], "human"),
             draw_density=False,
         )
 

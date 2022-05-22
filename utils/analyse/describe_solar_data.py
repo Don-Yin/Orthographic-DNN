@@ -16,7 +16,7 @@ class DescribeSolarData:
         self.main()
 
     def read_data(self):
-        data = open(Path("assets", "solar_model", f"SOLAR_result_target_duration_{self.duration}.txt"), "r").read()
+        data = open(Path("assets", "scm", f"SOLAR_result_target_duration_{self.duration}.txt"), "r").read()
         initial_lines = data.split("\n")[:2]
         line_1 = [i for i in initial_lines[0].split("	") if i]
         line_2 = [i for i in initial_lines[1].split("	") if i not in ["", "Prime", "Target"]]
@@ -26,14 +26,16 @@ class DescribeSolarData:
 
         self.data = pandas.DataFrame({"prime_type": line_2, "Predicted RT": line_1})
         self.data.to_csv(
-            Path("results", self.analysis_settings["result"], "solar_model", f"solar_model_target_duration_{self.duration}.csv"),
+            Path(
+                "results", self.analysis_settings["result_folder"], "scm", f"solar_model_target_duration_{self.duration}.csv"
+            ),
             index=False,
         )
 
     def main(self):
         dummy_dataframe = self.data.copy()
         dummy_dataframe.set_index("prime_type", inplace=True)
-        RTs = [-float(i) for i in dummy_dataframe['Predicted RT'].values]
+        RTs = [-float(i) for i in dummy_dataframe["Predicted RT"].values]
         dummy_dataframe["Predicted RT"] = RTs
 
         dummy_dataframe = dummy_dataframe.reindex(self.sorter)
@@ -47,7 +49,7 @@ class DescribeSolarData:
                 name_save="ridge_solar_model.png",
                 hue_level=len(self.sorter),
                 means=None,
-                path_save=Path("results", self.analysis_settings["result"], "solar_model"),
+                path_save=Path("results", self.analysis_settings["result_folder"], "scm"),
                 draw_density=False,
                 whether_double_extreme_lines=False,
             )

@@ -37,7 +37,7 @@ if __name__ == "__main__":
             self.vit_l_32 = torchvision.models.vit_l_32(pretrained=True, progress=True)
 
         def read_model_list(self):
-            self.selected_network_names = json.load(open(Path("assets", "selected_models.json"), "r"))
+            self.selected_network_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
 
         def load_dict(self):
             for i in self.selected_network_names:

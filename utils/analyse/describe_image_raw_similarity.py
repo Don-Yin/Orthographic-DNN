@@ -43,7 +43,7 @@ class DescribeImageRawSimilarity:
     def set_descriptive_data(self):
         self.descriptive_stats = self.data_main.groupby("primes").describe()
         self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result"], "image_raw_cosine_similarity", "image_raw_cosine_similarity.csv"))
+        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "image_raw_cosine_similarity", "image_raw_cosine_similarity.csv"))
 
     def plot_ridge(self):
         dummy_dataframe = self.data_main.copy()
@@ -59,7 +59,7 @@ class DescribeImageRawSimilarity:
                 name_save="image_raw_cosine_similarity.png",
                 hue_level=len(self.sorter),
                 means=None,
-                path_save=Path("results", self.analysis_settings["result"], "image_raw_cosine_similarity"),
+                path_save=Path("results", self.analysis_settings["result_folder"], "image_raw_cosine_similarity"),
                 draw_density=True,
                 whether_double_extreme_lines=False,
             )

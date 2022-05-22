@@ -37,7 +37,7 @@ class DescribeLevenshtein:
         self.descriptive_stats = self.data_main.describe()
         self.descriptive_stats = self.descriptive_stats.transpose()
         self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result"], "levenshtein", f"{self.target_file}.csv"))
+        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "levenshtein", f"{self.target_file}.csv"))
 
     def plot_ridge(self):
         dummy_dataframe = self.descriptive_stats.copy()
@@ -54,7 +54,7 @@ class DescribeLevenshtein:
                 name_save=f"{self.target_file}.png",
                 hue_level=len(self.sorter),
                 means=means,
-                path_save=Path("results", self.analysis_settings["result"], "levenshtein"),
+                path_save=Path("results", self.analysis_settings["result_folder"], "levenshtein"),
                 draw_density=False,
                 whether_double_extreme_lines=False,
             )
