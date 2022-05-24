@@ -10,6 +10,7 @@ from utils.analyse.describe_human_data import DescribeHumanData
 from utils.analyse.describe_ia_data import DescribeIaData, DescribeIaDataFull
 from utils.analyse.describe_image_raw_similarity import DescribeImageRawSimilarity
 from utils.analyse.describe_levenshtein import DescribeLevenshtein
+from utils.analyse.describe_ltrs import DescribeLtrsData
 from utils.analyse.describe_match_value import DescribeMatchValue
 from utils.analyse.describe_model_data import DescribeModelData
 from utils.analyse.describe_scm_data import DescribeScmData, DescribeScmDataFull
@@ -56,6 +57,7 @@ class Analyse:
         self.create_human_data()
         self.create_dnn_data()
         self.create_match_value_data()
+        self.create_ltrs_data()
         self.create_scm_data()
         self.create_ia_data()
         self.create_levenshtein_data()
@@ -74,6 +76,7 @@ class Analyse:
         # ----full priming models----
         self.join_scm_data()
         self.join_ia_data()
+        self.join_ltrs_data()
 
         # ----baselines----
         self.join_image_raw_cosine_similarity()
@@ -109,6 +112,7 @@ class Analyse:
                 "match_value",
                 "model",
                 "scm",
+                "ltrs",
                 "ia",
                 "levenshtein",
                 "image_raw_cosine_similarity",
@@ -136,6 +140,9 @@ class Analyse:
     def create_dnn_data(self):
         if not os.listdir(self.path_folder_model_data) or self.force_process:
             DescribeModelData()
+
+    def create_ltrs_data(self):
+        DescribeLtrsData()
 
     def create_scm_data(self):
         DescribeScmData(duration=self.scm_duration)
@@ -180,6 +187,12 @@ class Analyse:
             descriptive_stats = descriptive_stats[["mean"]]
             descriptive_stats.rename({"mean": name}, axis=1, inplace=True)
             self.data_descriptive_main = self.data_descriptive_main.join(descriptive_stats)
+
+    def join_ltrs_data(self):
+        descriptive_stats = self._read_descriptive_csv(drop_row="Primes", sub_folder="ltrs", file_name=f"ltrs.csv")
+        descriptive_stats = descriptive_stats[["mean"]]
+        descriptive_stats.rename({"mean": "LTRS"}, axis=1, inplace=True)
+        self.data_descriptive_main = self.data_descriptive_main.join(descriptive_stats)
 
     def join_scm_data(self):
         dataframe = pandas.read_csv(self.path_scm_data)

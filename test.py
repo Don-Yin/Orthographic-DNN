@@ -1,3 +1,3 @@
-from utils.analyse.describe_model_data import DescribeModelData
+from utils.analyse.describe_ltrs import DescribeLtrsData
 
-DescribeModelData()
+DescribeLtrsData()
