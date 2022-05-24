@@ -7,11 +7,12 @@ import pandas
 from utils.analyse.correlation import correlations
 from utils.analyse.describe_correlation_layer_wise import DescribeCosineSimilarityLayerWise
 from utils.analyse.describe_human_data import DescribeHumanData
+from utils.analyse.describe_ia_data import DescribeIaData, DescribeIaDataFull
 from utils.analyse.describe_image_raw_similarity import DescribeImageRawSimilarity
 from utils.analyse.describe_levenshtein import DescribeLevenshtein
 from utils.analyse.describe_match_value import DescribeMatchValue
 from utils.analyse.describe_model_data import DescribeModelData
-from utils.analyse.describe_solar_data import DescribeSolarData
+from utils.analyse.describe_scm_data import DescribeScmData, DescribeScmDataFull
 from utils.analyse.make_image_raw_cosine_similarity_data import MakeImageRawCosineSimilarityData
 from utils.analyse.make_match_calculator_data import ProcessMatchCalculatorData
 from utils.plot.correlation_matrix import CorrelationMatrix
@@ -24,7 +25,7 @@ class Analyse:
         self.conceptual_model_names = json.load(open(Path("assets", "coding_schemes.json"), "r"))
 
         self.correlation_method = self.analysis_settings["correlation_method"]  # kendall/spearman/pearson
-        self.solar_duration = self.analysis_settings["solar_duration"]
+        self.scm_duration = self.analysis_settings["scm_duration"]
         self.force_process = self.analysis_settings["force_process"]
 
         self.make_folders()
@@ -42,8 +43,9 @@ class Analyse:
         self.path_output_correlation_matrix_main = self.path_result_base / "correlation_matrix_main.png"
         self.path_output_correlation_matrix_model_score = self.path_result_base / "correlation_matrix_model_score.png"
         self.path_levenshtein_data = self.path_result_base / "levenshtein" / "levenshtein.csv"
-        self.path_scm_data = self.path_result_base / "scm" / f"solar_model_target_duration_{self.solar_duration}.csv"
         self.path_descriptive_stats_main = self.path_result_base / "descriptive_stats_main.csv"
+        self.path_scm_data = self.path_result_base / "scm" / f"solar_model_target_duration_{self.scm_duration}.csv"
+        self.path_ia_data = self.path_result_base / "ia" / f"ia_target_duration_{self.scm_duration}.csv"
 
         # ---paths assets----
         self.path_image_raw_cosine_similarity_data = Path(
@@ -55,6 +57,7 @@ class Analyse:
         self.create_dnn_data()
         self.create_match_value_data()
         self.create_scm_data()
+        self.create_ia_data()
         self.create_levenshtein_data()
         self.create_image_raw_cosine_similarity_data()
         self.create_cosine_similarity_layer_wise_data()
@@ -70,6 +73,7 @@ class Analyse:
 
         # ----full priming models----
         self.join_scm_data()
+        self.join_ia_data()
 
         # ----baselines----
         self.join_image_raw_cosine_similarity()
@@ -105,6 +109,7 @@ class Analyse:
                 "match_value",
                 "model",
                 "scm",
+                "ia",
                 "levenshtein",
                 "image_raw_cosine_similarity",
                 "cosine_similarity_layer_wise",
@@ -133,8 +138,12 @@ class Analyse:
             DescribeModelData()
 
     def create_scm_data(self):
-        if (not os.path.exists(self.path_scm_data)) or self.force_process:
-            DescribeSolarData(duration=self.solar_duration)
+        DescribeScmData(duration=self.scm_duration)
+        DescribeScmDataFull(duration=self.scm_duration)
+
+    def create_ia_data(self):
+        DescribeIaDataFull(duration=self.scm_duration)
+        DescribeIaData(duration=self.scm_duration)
 
     def create_levenshtein_data(self):
         if (not os.path.exists(self.path_levenshtein_data)) or self.force_process:
@@ -175,6 +184,12 @@ class Analyse:
     def join_scm_data(self):
         dataframe = pandas.read_csv(self.path_scm_data)
         dataframe.rename({"Predicted RT": "SCM"}, axis=1, inplace=True)
+        dataframe.set_index("prime_type", inplace=True)
+        self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
+
+    def join_ia_data(self):
+        dataframe = pandas.read_csv(self.path_ia_data)
+        dataframe.rename({"Predicted RT": "IA"}, axis=1, inplace=True)
         dataframe.set_index("prime_type", inplace=True)
         self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
 

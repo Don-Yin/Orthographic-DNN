@@ -19,7 +19,9 @@ class RidgePlot:
         means: list[float] = None,
         draw_density: bool = True,
         whether_double_extreme_lines: bool = False,
+        x_lim: tuple[float] = None,
     ):
+        self.x_lim = x_lim
         self.name_save = name_save
         self.dataframe = dataframe
         self.colname_group = colname_group
@@ -64,6 +66,7 @@ class RidgePlot:
         # Draw mean line (double line width is line position is either max or min of means)
         if not self.means:
             self.g.map(lambda i, **kw: plt.axvline(i.mean(), color=self.line_color, linewidth=1.2), self.colname_variable)
+            
         else:
             for ax, pos in zip(self.g.axes.flat, self.means):
                 line_width = 1.2
@@ -91,6 +94,8 @@ class RidgePlot:
         # Remove axes details that don't play well with overlap
         self.g.set_titles("")
         self.g.set(yticks=[], ylabel="")
+        if self.x_lim:
+                self.g.set(xlim=self.x_lim)
         self.g.despine(bottom=True, left=True)
 
         self.g.figure.savefig(self.path_save / self.name_save)

@@ -1,4 +1,5 @@
 import json
+from logging import raiseExceptions
 from pathlib import Path
 
 import numpy
@@ -11,7 +12,7 @@ class DescribeModelData:
     def __init__(self):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
         self.sorter = json.load(open(Path("assets", "sorter_human_data.json"), "r"))
-        self.read_selected_model_names()
+        self.selected_model_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
         self.read_error_dict()
 
         for name in self.selected_model_names:
@@ -26,9 +27,7 @@ class DescribeModelData:
         data = json.load(open(Path("assets", "model_all_layers", self.analysis_settings["model_all_layers_data_name"]), "r"))
         for i in tqdm(range(len(data))):
             data[i]["cosine_similarities"] = data[i]["cosine_similarities"][-2]
-
-    def read_selected_model_names(self):
-        self.selected_model_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
+        
 
     def read_error_dict(self):
         self.error_dict = json.load(open(Path("assets", "label_error.json"), "r"))
@@ -59,12 +58,40 @@ class DescribeModelData:
     def set_descriptive_data(self):
         self.descriptive_stats = self.data_main.groupby("primes").describe()
         self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "model", f"{self.which_model}.csv"))
+        self.descriptive_stats.to_csv(
+            Path("results", self.analysis_settings["result_folder"], "model", f"{self.which_model}.csv")
+        )
 
     def plot_ridge(self):
         dummy_dataframe = self.data_main.copy()
         dummy_dataframe["primes"] = dummy_dataframe["primes"].astype("category")
         dummy_dataframe["primes"] = dummy_dataframe["primes"].cat.set_categories(self.sorter)
+
+        match self.which_model:
+            case "alexnet":
+                xlim = (0.3, None)
+            case "densenet169":
+                xlim = (0.2, None)
+            case "efficientnet_b1":
+                xlim = None
+            case "resnet50":
+                xlim = (0.5, None)
+            case "resnet101":
+                xlim = (0.5, None)
+            case "vgg16":
+                xlim = (0.2, None)
+            case "vgg19":
+                xlim = (0.2, None)
+            case "vit_b_16":
+                xlim = (0.9, None)
+            case "vit_b_32":
+                xlim = (0.85, None)
+            case "vit_l_16":
+                xlim = None
+            case "vit_l_32":
+                xlim = (0.8, None)
+            case _:
+                raiseExceptions("Model not found")
 
         try:
             RidgePlot(
@@ -77,6 +104,7 @@ class DescribeModelData:
                 path_save=Path("results", self.analysis_settings["result_folder"], "model"),
                 draw_density=True,
                 whether_double_extreme_lines=False,
+                x_lim=xlim
             )
         except numpy.linalg.LinAlgError:
             pass

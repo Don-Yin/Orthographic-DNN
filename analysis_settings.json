@@ -5,7 +5,7 @@
     "model_all_layers_data_name": "normal.json",
     "image_raw_similarity_name": "normal.json",
     "correlation_method": "kendall",
-    "solar_duration": "2000",
+    "scm_duration": "2000",
     "force_process": true,
     "categories": [
         "Human priming",
@@ -25,6 +25,7 @@
         "Coding Schemes",
         "Coding Schemes",
         "Coding Schemes",
+        "Full Priming Model",
         "Full Priming Model",
         "Baselines",
         "Baselines"
