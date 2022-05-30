@@ -33,7 +33,7 @@ class RidgePlot:
         self.whether_double_extreme_lines = whether_double_extreme_lines
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
         self.line_color = "k" if self.analysis_settings["prime_data_folder"] == "prime_data_normal" else "r"
-        sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
+        sns.set_theme(style="whitegrid", rc={"axes.facecolor": (0, 0, 0, 0)})  # change back to "white" if no grid
         self.init_facetgrid_obj()
         self.main()
 
@@ -45,7 +45,9 @@ class RidgePlot:
                 hue=self.colname_group,
                 aspect=15,
                 height=0.5,
-                palette=sns.cubehelix_palette(self.hue_level, rot=-0.2, light=0.6, dark=0.6, hue=0.2),
+                palette=sns.cubehelix_palette(
+                    self.hue_level, rot=-0.2, light=0.6, dark=0.6, hue=0
+                ),  # adjust main color here
             )
         elif self.analysis_settings["prime_data_folder"] == "prime_data_position_corrected":
             self.g = sns.FacetGrid(
@@ -54,7 +56,7 @@ class RidgePlot:
                 hue=self.colname_group,
                 aspect=15,
                 height=0.5,
-                palette=sns.cubehelix_palette(self.hue_level, rot=0.2, light=0.3, dark=0.3, hue=0.0),
+                palette=sns.cubehelix_palette(self.hue_level, rot=-0.2, light=0.6, dark=0.6, hue=0),
             )
 
     def main(self):
@@ -66,7 +68,7 @@ class RidgePlot:
         # Draw mean line (double line width is line position is either max or min of means)
         if not self.means:
             self.g.map(lambda i, **kw: plt.axvline(i.mean(), color=self.line_color, linewidth=1.2), self.colname_variable)
-            
+
         else:
             for ax, pos in zip(self.g.axes.flat, self.means):
                 line_width = 1.2
@@ -84,7 +86,6 @@ class RidgePlot:
         def label(x, color, label):
             ax = plt.gca()
             ax.text(-0.17, 0.2, label, fontweight="bold", color="k", ha="left", va="center", transform=ax.transAxes)
-            # ax.text(-0.17, 0.2, label, fontweight="bold", color=color, ha="left", va="center", transform=ax.transAxes)
 
         self.g.map(label, self.colname_variable)  # put label
 
@@ -95,7 +96,7 @@ class RidgePlot:
         self.g.set_titles("")
         self.g.set(yticks=[], ylabel="")
         if self.x_lim:
-                self.g.set(xlim=self.x_lim)
+            self.g.set(xlim=self.x_lim)
         self.g.despine(bottom=True, left=True)
 
         self.g.figure.savefig(self.path_save / self.name_save)

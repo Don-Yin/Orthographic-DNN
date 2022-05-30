@@ -69,26 +69,46 @@ class DescribeCosineSimilarityLayerWise:
         self.correlation_layer_wise_frame = pandas.DataFrame(self.correlation_layer_wise)
         max_len = self.correlation_layer_wise_frame["correlation_each_layer"].apply(len).max()
         combinations = list(product(*[self.selected_model_names, range(max_len)]))
-        self.correlation_layer_wise_frame = pandas.DataFrame(
-            [
-                {
-                    "Model": c[0],
-                    "Layer": c[1],
-                    "Correlation Coefficient τ": self.get_correlation_value_by_name_and_layer_index(
-                        model=c[0], layer_index=c[1]
-                    ),
-                }
-                for c in combinations
-            ]
-        )
 
-        self.correlation_layer_wise_frame["Model"] = self.correlation_layer_wise_frame["Model"].replace(
-            self.dnn_model_labels
+        for name in self.selected_model_names:
+            setattr(self, f"correlation_layer_wise_{name}", list(product([name], range(max_len))))
+            setattr(
+                self,
+                f"correlation_layer_wise_frame_{name}",
+                pandas.DataFrame(
+                    {
+                        "Model": c[0],
+                        "Layer": c[1],
+                        "Correlation Coefficient τ": self.get_correlation_value_by_name_and_layer_index(
+                            model=c[0], layer_index=c[1]
+                        ),
+                    }
+                    for c in getattr(self, f"correlation_layer_wise_{name}")
+                ),
+            )
+            getattr(self, f"correlation_layer_wise_frame_{name}")["Model"] = getattr(
+                self, f"correlation_layer_wise_frame_{name}"
+            )["Model"].replace(self.dnn_model_labels)
+
+            getattr(self, f"correlation_layer_wise_frame_{name}")["Correlation Coefficient τ"] = (
+                getattr(self, f"correlation_layer_wise_frame_{name}")["Correlation Coefficient τ"]
+                .rolling(10, center=True)
+                .mean()
+            )
+
+        self.correlation_layer_wise_frame = pandas.concat(
+            [getattr(self, f"correlation_layer_wise_frame_{name}") for name in self.selected_model_names],
+            ignore_index=True,
         )
 
         if self.to_which == "human":
             self.correlation_layer_wise_frame.to_csv(
-                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.csv"),
+                Path(
+                    "results",
+                    self.analysis_settings["result_folder"],
+                    "correlation_layer_wise",
+                    "correlation_layer_wise.csv",
+                ),
                 index=False,
             )
         elif self.to_which == "raw_image":
@@ -106,12 +126,21 @@ class DescribeCosineSimilarityLayerWise:
         sns.set_theme(style="white", font_scale=1.3)
         if self.to_which == "human":
             data = pandas.read_csv(
-                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.csv")
+                Path(
+                    "results",
+                    self.analysis_settings["result_folder"],
+                    "correlation_layer_wise",
+                    "correlation_layer_wise.csv",
+                )
             )
-            data["Correlation Coefficient τ"] = data["Correlation Coefficient τ"].rolling(10, center=True).mean()
             plt.figure(figsize=(30, 14))
             sns.lineplot(x="Layer", y="Correlation Coefficient τ", hue="Model", data=data).figure.savefig(
-                Path("results", self.analysis_settings["result_folder"], "correlation_layer_wise", "correlation_layer_wise.png")
+                Path(
+                    "results",
+                    self.analysis_settings["result_folder"],
+                    "correlation_layer_wise",
+                    "correlation_layer_wise.png",
+                )
             )
         elif self.to_which == "raw_image":
             data = pandas.read_csv(
