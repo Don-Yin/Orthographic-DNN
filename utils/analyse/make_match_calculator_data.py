@@ -12,7 +12,6 @@ class ProcessMatchCalculatorData:
         self.read_calculator_result_from_csv()
         self.append_match_value_unrelated_strings()
         self.append_prime_type()
-        # self.reverse()
         self.save_final()
 
     def read_prime_data(self):

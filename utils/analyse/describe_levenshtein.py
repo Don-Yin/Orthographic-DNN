@@ -15,7 +15,6 @@ class DescribeLevenshtein:
         self.read_error_dict()
         self.read_data()
         self.to_dataframe()
-        self.set_descriptive_data()
         self.plot_ridge()
 
     def read_error_dict(self):
@@ -25,32 +24,30 @@ class DescribeLevenshtein:
         self.data_main = json.load(
             open(Path("assets", "levenshtein", f"2014-prime-data-words-only-{self.target_file}.json"), "r")
         )
-        for i in range(len(self.data_main)):
-            for key in self.error_dict.keys():
-                if key in self.data_main[i].keys():
-                    self.data_main[i][self.error_dict[key]] = self.data_main[i].pop(key)
+        for key in self.error_dict.keys():
+            if key in self.data_main.keys():
+                self.data_main[self.error_dict[key]] = self.data_main.pop(key)
 
     def to_dataframe(self):
-        self.data_main = pandas.DataFrame(self.data_main)
-
-    def set_descriptive_data(self):
-        self.descriptive_stats = self.data_main.describe()
-        self.descriptive_stats = self.descriptive_stats.transpose()
-        self.descriptive_stats = self.descriptive_stats.reindex(self.sorter)
-        self.descriptive_stats.to_csv(Path("results", self.analysis_settings["result_folder"], "levenshtein", f"{self.target_file}.csv"))
+        self.data_main = pandas.DataFrame(self.data_main, index=[0]).transpose()
+        self.data_main = self.data_main.reindex(self.sorter)
+        self.data_main.columns = ["LD"]
+        self.data_main.to_csv(Path("results", self.analysis_settings["result_folder"], "levenshtein", f"{self.target_file}.csv"))
 
     def plot_ridge(self):
-        dummy_dataframe = self.descriptive_stats.copy()
+        dummy_dataframe = self.data_main.copy()
         dummy_dataframe["prime_type"] = dummy_dataframe.index
 
-        means = list(self.descriptive_stats["mean"])
-        means.reverse()
+        means = list(self.data_main["LD"])
+        means = [-i for i in means]
+
+        print(means)
 
         try:
             RidgePlot(
                 dataframe=dummy_dataframe,
                 colname_group="prime_type",
-                colname_variable="mean",
+                colname_variable="LD",
                 name_save=f"{self.target_file}.png",
                 hue_level=len(self.sorter),
                 means=means,

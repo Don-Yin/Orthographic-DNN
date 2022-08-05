@@ -24,13 +24,13 @@ if __name__ == "__main__":
             self.load_dict()
 
         def init_models(self):
-            self.alexnet = torchvision.models.alexnet(pretrained=True, progress=True)
-            self.densenet169 = torchvision.models.densenet169(pretrained=True, progress=True)
-            self.efficientnet_b1 = torchvision.models.efficientnet_b1(pretrained=True, progress=True)
-            self.resnet50 = torchvision.models.resnet50(pretrained=True, progress=True)
-            self.resnet101 = torchvision.models.resnet101(pretrained=True, progress=True)
-            self.vgg16 = torchvision.models.vgg16(pretrained=True, progress=True)
-            self.vgg19 = torchvision.models.vgg19(pretrained=True, progress=True)
+            self.alexnet = torchvision.models.alexnet(pretrained=True, progress=True)  # 4096
+            self.densenet169 = torchvision.models.densenet169(pretrained=True, progress=True)  # 1664
+            self.efficientnet_b1 = torchvision.models.efficientnet_b1(pretrained=True, progress=True)  # 1280
+            self.resnet50 = torchvision.models.resnet50(pretrained=True, progress=True)  # 2048
+            self.resnet101 = torchvision.models.resnet101(pretrained=True, progress=True)  # 2048
+            self.vgg16 = torchvision.models.vgg16(pretrained=True, progress=True)  # 4096
+            self.vgg19 = torchvision.models.vgg19(pretrained=True, progress=True)  # 4096
             self.vit_b_16 = torchvision.models.vit_b_16(pretrained=True, progress=True)
             self.vit_b_32 = torchvision.models.vit_b_32(pretrained=True, progress=True)
             self.vit_l_16 = torchvision.models.vit_l_16(pretrained=True, progress=True)

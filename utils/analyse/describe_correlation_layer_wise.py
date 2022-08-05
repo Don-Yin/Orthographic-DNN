@@ -123,7 +123,7 @@ class DescribeCosineSimilarityLayerWise:
             )
 
     def plot(self):
-        sns.set_theme(style="white", font_scale=1.3)
+        sns.set_theme(style="whitegrid", font_scale=1.5)
         if self.to_which == "human":
             data = pandas.read_csv(
                 Path(
