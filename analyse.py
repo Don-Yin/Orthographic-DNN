@@ -5,16 +5,20 @@ from pathlib import Path
 import pandas
 
 from utils.analyse.correlation import correlations
-from utils.analyse.describe_correlation_layer_wise import DescribeCosineSimilarityLayerWise
+from utils.analyse.describe_correlation_layer_wise import \
+    DescribeCosineSimilarityLayerWise
 from utils.analyse.describe_human_data import DescribeHumanData
 from utils.analyse.describe_ia_data import DescribeIaData, DescribeIaDataFull
-from utils.analyse.describe_image_raw_similarity import DescribeImageRawSimilarity
+from utils.analyse.describe_image_raw_similarity import \
+    DescribeImageRawSimilarity
 from utils.analyse.describe_levenshtein import DescribeLevenshtein
 from utils.analyse.describe_ltrs import DescribeLtrsData
 from utils.analyse.describe_match_value import DescribeMatchValue
 from utils.analyse.describe_model_data import DescribeModelData
-from utils.analyse.describe_scm_data import DescribeScmData, DescribeScmDataFull
-from utils.analyse.make_image_raw_cosine_similarity_data import MakeImageRawCosineSimilarityData
+from utils.analyse.describe_scm_data import (DescribeScmData,
+                                             DescribeScmDataFull)
+from utils.analyse.make_image_raw_cosine_similarity_data import \
+    MakeImageRawCosineSimilarityData
 from utils.analyse.make_match_calculator_data import ProcessMatchCalculatorData
 from utils.plot.correlation_matrix import CorrelationMatrix
 
@@ -87,7 +91,7 @@ class Analyse:
 
         self.save_descriptive_stats()
         self.draw_correlation_matrix()
-        self.draw_correlation_matrix_model_scores()
+        # self.draw_correlation_matrix_model_scores()
 
     def make_folders(self):
         if (
@@ -208,8 +212,8 @@ class Analyse:
 
     def join_levenshtein(self):
         dataframe = pandas.read_csv(self.path_levenshtein_data, index_col=[0])
-        dataframe = dataframe[["mean"]]
-        dataframe.rename({"mean": "LD"}, axis=1, inplace=True)
+        # dataframe = dataframe[["mean"]]
+        # dataframe.rename({"mean": "LD"}, axis=1, inplace=True)
         self.data_descriptive_main = self.data_descriptive_main.join(-dataframe)
 
     def join_image_raw_cosine_similarity(self):

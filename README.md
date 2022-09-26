@@ -70,4 +70,3 @@ vit_l_16.heads.head = nn.Linear(vit_l_16.heads.head.in_features, 1000)
 resnet.fc = nn.Linear(resnet.fc.in_features, 1000)
 self.vgg19.classifier[-1] = nn.Linear(vgg19.classifier[-1].in_features, 5000)
 ```
-

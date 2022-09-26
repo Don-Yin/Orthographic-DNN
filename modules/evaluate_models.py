@@ -44,10 +44,11 @@ class BatchEvaluate:
     https://stackoverflow.com/questions/20638006/convert-list-of-dictionaries-to-a-pandas-dataframe
     """
 
-    def __init__(self, validate: False):
+    def __init__(self):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
         self.path_output = Path("assets", "model_output", "normal.json")
-        self.validate = validate
+        self.validate = False
+        self.use_checkpoint = False
         if self.validate:
             self.load_validation_data()
         self.read_prime_data()
@@ -129,27 +130,34 @@ class BatchEvaluate:
             print(f"Accuracy: {correct/10}%")
 
     def load_models(self):
-        self.alexnet = torchvision.models.alexnet(pretrained=False)
-        self.densenet169 = torchvision.models.densenet169(pretrained=False)
-        self.efficientnet_b1 = torchvision.models.efficientnet_b1(pretrained=False)
-        self.resnet50 = torchvision.models.resnet50(pretrained=False)
-        self.resnet101 = torchvision.models.resnet101(pretrained=False)
-        self.vgg16 = torchvision.models.vgg16(pretrained=False)
-        self.vgg19 = torchvision.models.vgg19(pretrained=False)
-        self.vit_b_16 = torchvision.models.vit_b_16(pretrained=False)
-        self.vit_b_32 = torchvision.models.vit_b_32(pretrained=False)
-        self.vit_l_16 = torchvision.models.vit_l_16(pretrained=False)
-        self.vit_l_32 = torchvision.models.vit_l_32(pretrained=False)
+        use_pretrain = not self.use_checkpoint
+        self.alexnet = torchvision.models.alexnet(pretrained=use_pretrain)
+        self.densenet169 = torchvision.models.densenet169(pretrained=use_pretrain)
+        self.efficientnet_b1 = torchvision.models.efficientnet_b1(pretrained=use_pretrain)
+        self.resnet50 = torchvision.models.resnet50(pretrained=use_pretrain)
+        self.resnet101 = torchvision.models.resnet101(pretrained=use_pretrain)
+        self.vgg16 = torchvision.models.vgg16(pretrained=use_pretrain)
+        self.vgg19 = torchvision.models.vgg19(pretrained=use_pretrain)
+        self.vit_b_16 = torchvision.models.vit_b_16(pretrained=use_pretrain)
+        self.vit_b_32 = torchvision.models.vit_b_32(pretrained=use_pretrain)
+        self.vit_l_16 = torchvision.models.vit_l_16(pretrained=use_pretrain)
+        self.vit_l_32 = torchvision.models.vit_l_32(pretrained=use_pretrain)
 
-        for model in self.selected_network_names:
-            # for model in ["vit_l_16"]:
-            getattr(self, model).load_state_dict(torch.load(Path("params", f"{model}.pth")))
-            getattr(self, model).eval()
-            device_allocator(getattr(self, model))
-            if self.validate:
-                self.validate_model_prediction(getattr(self, model))
-            print(f"State dict loaded: {model}")
+        if self.use_checkpoint:
+            for model in self.selected_network_names:
+                getattr(self, model).load_state_dict(torch.load(Path("params", f"{model}.pth")))
+                getattr(self, model).eval()
+                device_allocator(getattr(self, model))
+                if self.validate:
+                    self.validate_model_prediction(getattr(self, model))
+                print(f"State dict loaded: {model}")
+        else:
+            for model in self.selected_network_names:
+                getattr(self, model).eval()
+                device_allocator(getattr(self, model))
+                if self.validate:
+                    self.validate_model_prediction(getattr(self, model))
 
 
 if __name__ == "__main__":
-    BatchEvaluate(validate=False)
+    BatchEvaluate()

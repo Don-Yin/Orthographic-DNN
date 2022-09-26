@@ -1,31 +1,71 @@
-import pyperclip
+import json
+from pathlib import Path
 
-text = r"""
-\begin{tikzcd}
-W_{FPP} \arrow[d]                    & {W_{FPP}, T_{TL-12}} \arrow[d]        &                                                                                 &                                                                                                                       &                   \\
-\text{abduct} \arrow[rd, bend right] & \text{abductTL-12} \arrow[d]          &                                                                                 & {S_C(\text{feature map}_{W_{abduct}}, \text{feature map}_{W_{abduct, TL-12}})} \arrow[r]                              & kendall_init_demo \\
-                                     & \text{network input matrix} \arrow[r] & \text{network penultimate layer} \arrow[r] \arrow[ru, bend right, shift left=2] & \text{network output layer}                                                                                           &                   \\
-\text{abound} \arrow[rd, bend right] & \text{aboundTL-12} \arrow[d]          &                                                                                 & {S_C(\text{feature map}_{W_{abduct}}, \text{feature map}_{W_{abound, TL-12}})} \arrow[ruu, bend right, shift right]   &                   \\
-                                     & \text{network input matrix} \arrow[r] & \text{network penultimate layer} \arrow[r] \arrow[ru, bend right, shift left=2] & \text{network output layer}                                                                                           &                   \\
-\text{abrupt} \arrow[rd, bend right] & \text{abruptTL-12} \arrow[d]          &                                                                                 & {S_C(\text{feature map}_{W_{abduct}}, \text{feature map}_{W_{abrupt, TL-12}})} \arrow[ruuuu, bend right, shift right] &                   \\
-                                     & \text{network input matrix} \arrow[r] & \text{network penultimate layer} \arrow[r] \arrow[ru, bend right, shift left=2] & \text{network output layer}                                                                                           &                   \\
-                                     & ...                                   & ...                                                                             & ...                                                                                                                   &                  
-\end{tikzcd}"""
+import pandas
+
+analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
+error_dict = json.load(open(Path("assets", "label_error.json"), "r"))
+sorter = json.load(open(Path("assets", "sorter_human_data.json"), "r"))
+duration = 2000
 
 
-tran = {
-    r"\text{network input matrix}": r"\vcenter{\hbox{\includegraphics[scale=0.3]{network_component/input.png}}}",
-    r"\text{network intermediate layers}": r"\vcenter{\hbox{\includegraphics[scale=0.3]{network_component/intermediate.png}}}",
-    r"\text{network penultimate layer}": r"\vcenter{\hbox{\includegraphics[scale=0.3]{network_component/intermediate_penultimate.png}}}",
-    r"\text{network output layer}": r"\vcenter{\hbox{\includegraphics[scale=0.3]{network_component/output.png}}}",
-    r"\text{abduct}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abduct_ID.png}}}",
-    r"\text{abound}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abound_ID.png}}}",
-    r"\text{abrupt}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abrupt_ID.png}}}",
-    r"\text{abductTL-12}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abduct_TL-12.png}}}",
-    r"\text{aboundTL-12}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abound_TL-12.png}}}",
-    r"\text{abruptTL-12}": r"\vcenter{\hbox{\includegraphics[scale=0.2]{dig/abrupt_TL-12.png}}}",
-    r"kendall_init_demo": r"\input{diagrams/kendalls_init_demo}",
-}
-for i in tran:
-    text = text.replace(i, tran[i])
-pyperclip.copy(text)
+def read_data_SOLAR():
+    data = open(Path("assets", "scm", f"SOLAR_result_target_duration_{duration}.txt"), "r").read()
+    initial_lines = data.split("\n")[:2]
+    initial_lines = [i.split("\t") for i in initial_lines]
+    initial_lines = [[i for i in line if i] for line in initial_lines]
+
+    for i in range(len(initial_lines[1])):
+        if initial_lines[1][i] in error_dict.keys():
+            initial_lines[1][i] = error_dict[initial_lines[1][i]]
+
+    lines = [i.split("\t") for i in data.split("\n")[2:]]
+    lines = [[i for i in line if i] for line in lines]
+    lines = [i for i in lines if i]
+    lines = [[int(i.strip("No")) if not i.isalpha() else i for i in line] for line in lines]
+    for i in range(len(lines)):
+        lines[i] = dict(zip(initial_lines[1], lines[i]))
+        lines[i].pop("Prime", None)
+        lines[i].pop("Target", None)
+
+    content = []
+    for line in lines:
+        for key, value in line.items():
+            content.append({"Primes": key, "Predicted RT": value})
+
+    json.dump(content, open(Path("SOLAR_result.json"), "w"))
+
+
+
+def read_data_IA():
+    data = open(Path("assets", "ia", f"ia_target_duration_{duration}.txt"), "r").read()
+    initial_lines = data.split("\n")[:2]
+    initial_lines = [i.split("\t") for i in initial_lines]
+    initial_lines = [[i for i in line if i] for line in initial_lines]
+
+    for i in range(len(initial_lines[1])):
+        if initial_lines[1][i] in error_dict.keys():
+            initial_lines[1][i] = error_dict[initial_lines[1][i]]
+
+    lines = [i.split("\t") for i in data.split("\n")[2:]]
+    lines = [[i for i in line if i] for line in lines]
+    lines = [i for i in lines if i]
+    lines = [[int(i.strip("No")) if not i.isalpha() else i for i in line] for line in lines]
+    for i in range(len(lines)):
+        lines[i] = dict(zip(initial_lines[1], lines[i]))
+        lines[i].pop("Prime", None)
+        lines[i].pop("Target", None)
+
+    content = []
+    for line in lines:
+        for key, value in line.items():
+            content.append({"Primes": key, "Predicted RT": value})
+    
+    json.dump(content, open(Path("IA_result.json"), "w"))
+
+
+if __name__ == "__main__":
+    read_data_IA()
+    # data = json.load(open(Path("SOLAR_result.json"), "r"))
+    # data = 
+    # data['Primes'] = data['Primes'].apply(lambda x: sorter[x])

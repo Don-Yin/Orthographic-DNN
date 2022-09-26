@@ -206,8 +206,11 @@ class CreateData:
         shutil.rmtree(self.path_folder_data / "data_all")
 
 
-def init_create_train_data(dummy: bool = False):
-    corpus: list[str] = read_corpus(Path("assets", "1000-corpus.txt"))
+def init_create_train_data(dummy: bool = False, random: bool = False):
+    if random:
+        corpus = json.load(open(Path("assets", "random_strings.json"), "r"))
+    else:
+        corpus: list[str] = read_corpus(Path("assets", "1000-corpus.txt"))
 
     fonts: list = [f for f in os.listdir(Path("assets", "fonts")) if f.endswith(".ttf")]
     sizes: list = list(arange(18, 38, 2)) if not dummy else list(arange(18, 20, 2))
@@ -283,10 +286,13 @@ def init_create_train_data(dummy: bool = False):
 
     stats = add_compute_stats(torch_image_folder)(root=str(Path("data") / "data_train")).stats
     stats = {"mean": list(stats["mean"]), "std": list(stats["std"])}
-    json.dump(stats, open(Path("data", "normalization_stats.json"), "w"))
+    if random:
+        json.dump(stats, open(Path("data", "normalization_stats_random.json"), "w"))
+    else:
+        json.dump(stats, open(Path("data", "normalization_stats.json"), "w"))
 
 
-def get_position_from_type(position_correction: bool, type: str, target: str, content: str) -> tuple:
+def get_position_from_type(position_correction: bool, type: str, target: str, content: str):
     if not position_correction:
         return (0, 0)
     elif type == "SUB3" and content == target[:3]:

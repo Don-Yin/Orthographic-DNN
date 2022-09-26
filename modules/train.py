@@ -8,7 +8,6 @@ from torch.utils.data import random_split
 from torch.utils.data.dataloader import DataLoader as data_loader
 from torchsummary import summary as model_summary
 from torchvision.datasets import ImageFolder as torch_image_folder
-
 from utils.data_load.device_control import DeviceDataLoader, device_allocator
 from utils.data_load.normalize import add_compute_stats
 from utils.data_load.subset import MyImageFolder
@@ -42,7 +41,7 @@ class Train:
         for epoch in range(self.hyperparameters["num_epochs"]):
             print(f"Epoch: {epoch}")
             self.model.train()
-            train_losses_log = []
+            # train_losses_log = []
             batch_num: int = 0
             for batch in self.data_train_batch_loader:
                 if batch_num % self.hyperparameters["batch_report_every"] == 0:
@@ -69,7 +68,7 @@ class Train:
 
                 batch_num += 1
                 loss = self.get_train_loss(batch)
-                train_losses_log.append(loss)
+                # train_losses_log.append(loss)
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
@@ -80,11 +79,11 @@ class Train:
                     print(f"Params saved: {self.hyperparameters['model_tag']}")
                     batch_num = 0
 
-            summary_epoch = self.get_logger_test_loss_and_accuracy(self.data_test_batch_loader)
-            summary_epoch["train_loss"] = torch.stack(train_losses_log).mean().detach().item()
-            self.neptune_run["epoch/accuracy_top_1"].log(summary_epoch["test_accuracy_top_1"])
-            self.neptune_run["epoch/loss"].log(summary_epoch["test_loss"])
-            self.print_epoch(epoch, summary_epoch)
+            # summary_epoch = self.get_logger_test_loss_and_accuracy(self.data_test_batch_loader)
+            # summary_epoch["train_loss"] = torch.stack(train_losses_log).mean().detach().item()
+            # self.neptune_run["epoch/accuracy_top_1"].log(summary_epoch["test_accuracy_top_1"])
+            # self.neptune_run["epoch/loss"].log(summary_epoch["test_loss"])
+            # self.print_epoch(epoch, summary_epoch)
         self.neptune_run.stop()
 
     def read_list_corpus(self):
@@ -97,21 +96,21 @@ class Train:
         if subset and whether_normalize:
             corpus: list[str] = self.read_list_corpus()
             classes = corpus[subset[0] : subset[1]]
-            self.data = add_compute_stats(MyImageFolder)(
-                root=str(self.path_data), name_classes=classes, stats=normalization_stats
-            )
+            self.data = add_compute_stats(MyImageFolder)(root=str(self.path_data), name_classes=classes, stats=normalization_stats)
         elif subset and not whether_normalize:
             corpus: list[str] = self.read_list_corpus()
             classes = corpus[subset[0] : subset[1]]
             self.data = MyImageFolder(root=str(self.path_data), name_classes=classes)
         else:
-            self.data = add_compute_stats(torch_image_folder)(
-                root=str(Path("data") / "data_train"), stats=normalization_stats
-            )
+            # when not using add_compute_stats, the data has to go through transforms.Compose([transforms.Resize(), other transforms stuff]), which has to be passed as one of the parameters as torch_image_folder(transform=transforms.Compose([transforms.Resize(), other transforms stuff]))
+            self.data = add_compute_stats(torch_image_folder)(root=str(Path("data") / "data_train"), stats=normalization_stats)
 
     def init_neptune(self):
         neptune_token = json.load(open(Path("assets", "neptune_token.json"), "r"))
-        self.neptune_run = neptune.init(project=neptune_token["project"], api_token=neptune_token["api_token"],)
+        self.neptune_run = neptune.init(
+            project=neptune_token["project"],
+            api_token=neptune_token["api_token"],
+        )
         self.neptune_run["hyperparameters"] = self.hyperparameters
 
     def set_batch_loaders(self):
@@ -126,9 +125,7 @@ class Train:
         num_workers = 0  # cpu is somewhat not compatable with multiprocessing while using add_compute_stats
 
         self.data_train_batch_loader = DeviceDataLoader(
-            data_loader(
-                data_train, self.hyperparameters["size_batch"], shuffle=True, num_workers=num_workers, pin_memory=True
-            )
+            data_loader(data_train, self.hyperparameters["size_batch"], shuffle=True, num_workers=num_workers, pin_memory=True)
         )
 
         self.data_test_batch_loader = DeviceDataLoader(
@@ -159,27 +156,12 @@ class Train:
         accuracy_top_5 = torch.tensor(torch.sum(torch.eq(predictions_top_5, labels).t()).detach().item() / len(labels))
         return {"batch_loss": loss.detach(), "batch_accuracy_top_1": accuracy_top_1, "batch_accuracy_top_5": accuracy_top_5}
 
-    def get_validation_accuracy(self, batch):
-        images, labels = batch
-        outputs = self.model(images)
-        _, predictions_top_1 = torch.max(outputs, dim=1)
-        accuracy_top_1 = torch.tensor(torch.sum(predictions_top_1 == labels).detach().item() / len(predictions_top_1))
-        return accuracy_top_1
-
-    def get_logger_test_loss_and_accuracy(self, loader_test_data):
-        self.model.eval()
-        log_validation_loss = [self.get_batch_loss_and_accuracy(batch) for batch in loader_test_data]
-        epochLoss = torch.stack([i["batch_loss"] for i in log_validation_loss]).mean()  # Combine losses
-        epochAccu = torch.stack([i["batch_accuracy_top_1"] for i in log_validation_loss]).mean()  # Combine accuracies
-        self.model.train()
-        return {"test_loss": epochLoss.detach().item(), "test_accuracy_top_1": epochAccu.detach().item()}
-
-    def print_epoch(self, epoch, result):
-        print(
-            "Epoch [{}], train_loss: {:.4f}, test_loss: {:.4f}, test_accuracy_top_1: {:.4f}".format(
-                epoch, result["train_loss"], result["test_loss"], result["test_accuracy_top_1"]
-            )
-        )
+    # def print_epoch(self, epoch, result):
+    #     print(
+    #         "Epoch [{}], train_loss: {:.4f}, test_loss: {:.4f}, test_accuracy_top_1: {:.4f}".format(
+    #             epoch, result["train_loss"], result["test_loss"], result["test_accuracy_top_1"]
+    #         )
+    #     )
 
 
 if __name__ == "__main__":
