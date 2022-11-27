@@ -31,6 +31,7 @@ class Evaluate:
             i[0].replace(".png", "").split(("/" if platform.system() != "Windows" else "\\"))[2::]
             for i in self.prime_data.imgs
         ]
+        # print(image_label_prime)
         image_indices: tuple[int] = (
             image_label_prime.index([self.word, self.prime_types[0]]),
             image_label_prime.index([self.word, self.prime_types[1]]),

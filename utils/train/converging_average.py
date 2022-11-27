@@ -1,4 +1,17 @@
 class ExpMovingAverage:
+    """
+    This creates a moving exp function that tracks the loss
+    value during training for early stopping.
+    E.g.,
+        moving_average = ExpMovingAverage(10)  # First loss
+        moving_average(5)  # Second loss
+        moving_average(3)  # Third loss so on
+        moving_average(2)
+        moving_average(1)
+        moving_average(0.3)
+        print(moving_average.avg)
+    """
+
     def __init__(self, start, alpha=0.5):
         self.avg = start
         self.alpha = alpha

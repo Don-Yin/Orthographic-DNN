@@ -12,11 +12,11 @@ from PIL import ImageStat
 from sty import bg, ef, fg, rs
 
 
+
+
 def compute_mean_and_std_from_dataset(dataset, dataset_path=None, max_iteration=100, data_loader=None, verbose=True):
     if max_iteration < 30:
-        print(
-            "Max Iteration in Compute Mean and Std for dataset is lower than 30! This could create unrepresentative stats!"
-        ) if verbose else None
+        print("Max Iteration in Compute Mean and Std for dataset is lower than 30! This could create unrepresentative stats!") if verbose else None
     start = time()
     stats = {}
     transform_save = dataset.transform
@@ -45,9 +45,7 @@ def compute_mean_and_std_from_dataset(dataset, dataset_path=None, max_iteration=
     stats["mean"] = np.array(statistics.mean) / 255
     stats["std"] = np.array(statistics.stddev) / 255
     stats["iter"] = max_iteration
-    print(
-        (fg.cyan + "mean: {}; std: {}, time: {}" + rs.fg).format(stats["mean"], stats["std"], stats["time_one_iter"])
-    ) if verbose else None
+    print((fg.cyan + "mean: {}; std: {}, time: {}" + rs.fg).format(stats["mean"], stats["std"], stats["time_one_iter"])) if verbose else None
     if dataset_path is not None:
         print("Saving in {}".format(dataset_path))
         with open(dataset_path, "wb") as f:
@@ -61,7 +59,6 @@ class Stats(ImageStat.Stat):
     def __add__(self, other):
         return Stats(list(map(np.add, self.h, other.h)))
 
-
 def add_compute_stats(obj_class):
     # global ComputeStatsUpdateTransform
 
@@ -70,7 +67,7 @@ def add_compute_stats(obj_class):
         def __init__(
             self,
             name_generator="dataset",
-            add_PIL_transforms=None,
+            add_PIL_transforms=None,  ## if resize add here
             add_tensor_transforms=None,
             num_image_calculate_mean_std=70,
             stats=None,
@@ -94,9 +91,7 @@ def add_compute_stats(obj_class):
             if add_tensor_transforms is None:
                 add_tensor_transforms = []
 
-            self.transform = torchvision.transforms.Compose(
-                [*add_PIL_transforms, torchvision.transforms.ToTensor(), *add_tensor_transforms]
-            )
+            self.transform = torchvision.transforms.Compose([*add_PIL_transforms, torchvision.transforms.ToTensor(), *add_tensor_transforms])
 
             self.name_generator = name_generator
             self.additional_transform = add_PIL_transforms
@@ -107,13 +102,7 @@ def add_compute_stats(obj_class):
 
             if isinstance(stats, dict):
                 self.stats = stats
-                print(
-                    fg.red
-                    + "Using precomputed stats: "
-                    + fg.cyan
-                    + f"mean = {self.stats['mean']}, std = {self.stats['std']}"
-                    + rs.fg
-                )
+                print(fg.red + "Using precomputed stats: " + fg.cyan + f"mean = {self.stats['mean']}, std = {self.stats['std']}" + rs.fg)
 
             elif isinstance(stats, str):
                 if os.path.isfile(stats):
@@ -140,19 +129,11 @@ def add_compute_stats(obj_class):
                 pickle.dump(self.stats, open(save_stats_file, "wb"))
 
             normalize = torchvision.transforms.Normalize(mean=self.stats["mean"], std=self.stats["std"])
-            # self.stats = {}
-            # self.stats['mean'] = [0.491, 0.482, 0.44]
-            # self.stats['std'] = [0.247, 0.243, 0.262]
-            # normalize = torchvision.transforms.Normalize(mean=[0.491, 0.482, 0.447], std=[0.247, 0.243, 0.262])
-
             self.transform.transforms += [normalize]
-
             print(f"Map class_name -> labels: {self.class_to_idx}\n{len(self)} samples.") if self.verbose else None
 
         def call_compute_stats(self):
-            return compute_mean_and_std_from_dataset(
-                self, None, max_iteration=self.num_image_calculate_mean_std, verbose=self.verbose
-            )
+            return compute_mean_and_std_from_dataset(self, None, max_iteration=self.num_image_calculate_mean_std, verbose=self.verbose)
 
     return ComputeStatsUpdateTransform
 

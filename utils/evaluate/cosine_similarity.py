@@ -3,8 +3,8 @@ from torch import nn
 from torch.functional import Tensor
 
 
-def compute_cosine_similarity(vectors: tuple[Tensor], dimension = 1) -> Tensor:
-    return float(nn.CosineSimilarity(dim=dimension, eps=1e-8)(vectors[0], vectors[1]))
+def compute_cosine_similarity(vectors: tuple[Tensor], dimension=1) -> Tensor:
+    return float(nn.CosineSimilarity(dim=dimension, eps=1e-8)(*vectors))
 
 
 if __name__ == "__main__":

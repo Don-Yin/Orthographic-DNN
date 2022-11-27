@@ -1,72 +1,47 @@
 # Orthographic-DNN
-Project objective: comparing human orthographic perception with visual DNN models.
-Fonts are in assets/fonts.
+This is the code repository for the research project *[Convolutional Neural Networks Trained to Identify Words Provide a Good Account of Visual Form Priming Effects](https://www.researchsquare.com/article/rs-2289281/v1)*
 
-python==3.10.4
+*Project objective*: comparing human orthographic perception with visual DNN models (CNNs and ViTs).
+*Project outcome*: CNNs did a good job in predicting the pattern of human priming scores across conditions, with correlations ranging from τ = .49 (AlexNet) to τ = .71. (ResNet101) with all p-values < .01. The CNNs performed similarly to the various orthographic coding schemes word recognition models, and often better. This contrasts with the relatively poor performance of the Transformer networks, with τ ranging from .25 to .38.
 
+## Rationale
+1. Prime Conditions
+   The Form Priming Project includes 28 prime conditions for how a letter string can be amended to form a new string. For example, the word $design$ in the "final tansposition" condition will be presented as $deigns$.
+2. Measuring humans' perceptual similarity of words or letter strings:
+   For a human participant, the similarity $sim(s_1, s_2)$ of two word strings $s_1$ (the target) and $s_2$ (the prime) is measured using a Lexical Decision Task (LDT), where $s_1$ and $s_2$ are presented one at a time, with a fixation cross in between, and the participant has to decide as quickly as possible whether $s_1$ is a word or not. The reaction time is compared to that when the target word is presented with an arbitrary random string $s_3$ as prime. The similarity $sim(s_1, s_2)$ is calculated as $sim(s_1, s_2) = RT_{s_1|s_2} - RT_{s_1|s_3}$. For each condition $C$ and each prime string $s_2$, the mean similarity $\bar{sim}(s_1, C)$ is calculated by averaging the similarity $sim(s_1, s_2)$ over the 420 prime strings $s_2$ for $C$.
+3. Measuring models' perceptual similarity of words or letter strings:
+   For the models, the similarity $sim(s_1, s_2)$ is measured by the cosine similarity $sim(s_1, s_2) = \cos(s_1, s_2)$ between the two vectors $s_1$ and $s_2$ where $s_1$ and $s_2$ are the flattened penulimate layer outputs when the models are fed with two images of the two strings. For each condition  $C$ and each prime string $s_2$, the mean similarity $\bar{sim}(s_1, C)$ is calculated by averaging the similarity $sim(s_1, s_2)$ over the 420 prime strings $s_2$ for $C$.
+4. Comparing the perceptual patterns between humans and models:
+   Kendall's rank correlation coefficient $\tau$ is used to measure the correlation between the human and model priming scores across conditions. The human priming scores are taken from the Form Priming Project, and the model priming scores are calculated by the code in this repository. For a given model $M$, its similarity with human priming is calculated as $\tau(M) = \sum_{C}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})\text{sign}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})$
+   where $\bar{sim}(s_1, C)_{M}$ and $\bar{sim}(s_1, C)_{human}$ are the mean similarity scores of the model $M$ and the human participant, respectively, for condition $C$.
 
-## Full priming models to add
-![LTRS](http://www.adelmanlab.org/ltrs/)
-![IA](http://www.pc.rhul.ac.uk/staff/c.davis/SpatialCodingModel/)
-![BayesianReader](https://www.mrc-cbu.cam.ac.uk/personal/dennis.norris/personal/BayesianReader/)
-(https://www.mrc-cbu.cam.ac.uk/people/dennis.norris/personal/BayesianReader/documentation/)
+## Data
+1. the Fonts used to generate the data are in `assets/fonts` stored as `.ttf` files.
+2. The human priming data is sourced from [the Form Priming Project (FPP)](https://link.springer.com/article/10.3758/s13428-013-0442-y), available at [this link](https://files.warwick.ac.uk/jadelman2/browse#FPP) or [here](assets/adelman.xlsx) or [here](assets/adelman.csv).
+3. You can either download the [training data](https://drive.google.com/file/d/1w6m_57z6lVh97Cr6MJPNQbKYjh877zbL/view?usp=share_link) and the [prime data](https://drive.google.com/file/d/1qDyqdSIzwRQlqmi8kUJ34_G4Dr-qvYzZ/view?usp=sharing) as zip files or run the `generate_data.py` script to generate as many images as you like. The configurations of letter translation, rotation, variation s of font and sizes are at [here](utils/data_generate/main.py). The zip file of the training data contains 800,000 images which should be enough for all models used in the current research.
 
----
+## Setup
+1. install `python==3.10.4`
+2. install [cuda driver](https://developer.nvidia.com/cuda-downloads)
+3. install pytorch on [pytorch.org](pytorch.org) - >= torch-1.11.0
+4. `pip install -r requirements.txt`
 
-## Install cuda + pytorch
-1. install cuda driver
-2. correct version of pytorch on pytorch.org - >= torch-1.11.0
+## Psychological Priming Models and Coding Schemes
+1. The LTRS model simulator is available at [AdelmanLab](http://www.adelmanlab.org/ltrs/)
+2. The Interactive Activation Model and the Spatial Coding Model are implemented using [this calculator](http://www.pc.rhul.ac.uk/staff/c.davis/SpatialCodingModel/) developed by [Prof. Colin Davis](https://www.bristol.ac.uk/people/person/Colin-Davis-49b9852f-cb91-4196-95cb-509804919a1e/).
 
-## Run on server
-1. build docker image: 
-    tmux new -s {session name}
-    tmux attach-session
-    tmux attach-session -t {session name}
-    ```docker build -t=don_vgg:0.1 .```
-2. show image list in docker
-    ```docker image ls```
-3. double check mount volumes in run_docker.sh
-4. run docker image
-    create a new tmux session
-    ```chmod +x run_docker.sh```
+## Model Parameters
+The tested models are [Alexnet](https://papers.nips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html), [DenseNet169](https://arxiv.org/abs/1608.06993), [EfficientNet-B1](https://arxiv.org/abs/1905.11946)
+, [ResNet50, ResNet101](https://arxiv.org/abs/1512.03385), [VGG16, VGG19](https://arxiv.org/abs/1409.1556), [ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32](https://arxiv.org/abs/2010.11929). The models are initiated using ImageNet pre-trained weights from [Torchvision](https://pytorch.org/vision/stable/models.html), code for loading the weights are at [tune.py](tune.py). The trained parameters are available [here](https://drive.google.com/file/d/1chprLm5YJXTzgA7KGjEsNFjeZFVZzISG/view?usp=sharing)
 
-## tmux
-previous session: tmux a
-detach previous session: control b (pause) d
+## Additional Findings
+1. layer-wise correlation coefficient: to be added*
 
-## Server
-check current folder size: 
-```du -sh .```
+## Acknowledgement
+The project was conducted under the auspices of the [University of Bristol Mind & Machine Lab](https://mindandmachine.blogs.bristol.ac.uk/) and supported by [European Research Council (ERC)](https://erc.europa.eu/homepage) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No 741134).
 
-check free space available in current directory:
-```df -Ph . | tail -1 | awk '{print $4}'```
+## Contact
+For further instructions and enquiries, please contact [Don Yin](don_yin@outlook.com).
 
-check number of files in a folder
-```find ~/Orthographic-DNN//data -type f | wc -l```
-
-Once your model is running, run `nvidia-smi -lms 100` to check that the GPU is getting used
-
-## Load validation data.
-```python
-    data_valid = add_compute_stats(torch_image_folder)(root=str(Path("data") / "data_valid"))
-    data_valid_batch_loader = data_loader(data_valid, self.size_batch * 2, num_workers=4, pin_memory=True)
-    data_valid_batch_loader = DeviceDataLoader(data_valid_batch_loader)
-```
-
-## Init neptune
-```python
-  self.neptune_run["parameters"] = {
-      "function_optimizer": self.configuration["function_optimizer"],
-      "rate_learning": self.configuration["rate_learning"],
-      "function_loss": self.configuration["function_loss"],
-      "size_batch": self.configuration["size_batch"],
-      "num_epochs": self.configuration["num_epochs"],
-  }
-```
-
-## change number of classes
-```python
-vit_l_16.heads.head = nn.Linear(vit_l_16.heads.head.in_features, 1000)
-resnet.fc = nn.Linear(resnet.fc.in_features, 1000)
-self.vgg19.classifier[-1] = nn.Linear(vgg19.classifier[-1].in_features, 5000)
-```
+## License
+MIT License (see LICENSE file)

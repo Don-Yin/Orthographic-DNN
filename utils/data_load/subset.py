@@ -7,9 +7,7 @@ from torchvision.datasets import ImageFolder
 
 class MyImageFolder(ImageFolder):
     """Selectively read training data:
-
     data_train = MyImageFolder(root=str(Path("data") / "data_train"), name_classes=corpus[:10])
-
     Args:
         ImageFolder (ImageFolder): ImageFolder class from torch vision
     """

@@ -1,3 +1,7 @@
+"""
+This script is used to create the train/test data
+"""
+
 import json
 import math
 import os
@@ -16,8 +20,11 @@ from PIL.ImageFont import truetype
 from scipy import ndimage
 from torchvision.datasets import ImageFolder as torch_image_folder
 from tqdm import tqdm
+
 from utils.data_generate.read_corpus import read_corpus
 from utils.data_load.normalize import add_compute_stats
+
+path_folder_data = Path("data")
 
 
 class CreateData:
@@ -26,11 +33,9 @@ class CreateData:
         self.width: int = 224
         self.height: int = 224
         self.center: tuple = (self.width / 2, self.height / 2)
-        self.path_folder_data: Path = Path("data")
         self.ratio_train_valid_data: float = 4 / 1
         self.coefficient_data_valid: float = self.ratio_train_valid_data**-1
         self.coefficient_data_train: float = 1 - self.coefficient_data_valid
-        self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
 
     def set_attributes(self, c: dict):
         if self.mode == "main":
@@ -61,14 +66,14 @@ class CreateData:
 
     def create_main_folders(self):
         if self.mode == "main":
-            self.ensure_folder_exists(self.path_folder_data)
-            self.ensure_folder_exists(self.path_folder_data / "data_all")
-            self.ensure_folder_exists(self.path_folder_data / "data_all" / self.word)
-            self.ensure_folder_exists(self.path_folder_data / "data_train")
-            self.ensure_folder_exists(self.path_folder_data / "data_valid")
+            self.ensure_folder_exists(path_folder_data)
+            self.ensure_folder_exists(path_folder_data / "data_all")
+            self.ensure_folder_exists(path_folder_data / "data_all" / self.word)
+            self.ensure_folder_exists(path_folder_data / "data_train")
+            self.ensure_folder_exists(path_folder_data / "data_valid")
         elif self.mode == "prime":
-            self.ensure_folder_exists(self.path_folder_data / self.analysis_settings["prime_data_folder"])
-            self.ensure_folder_exists(self.path_folder_data / self.analysis_settings["prime_data_folder"] / self.target)
+            self.ensure_folder_exists(path_folder_data / "prime_data")
+            self.ensure_folder_exists(path_folder_data / "prime_data" / self.target)
 
     def ensure_folder_exists(self, path: Path):
         if not os.path.exists(path):
@@ -78,9 +83,7 @@ class CreateData:
         self.word = self.content if self.mode == "prime" else self.word
         self.word = self.word.upper()
         canvas = new("RGB", (self.width, self.height), color=(0, 0, 0))
-        self.letters_size_font_shift: list = [
-            random.randint(-self.variance_font, self.variance_font) for _ in range(0, len(self.word))
-        ]
+        self.letters_size_font_shift: list = [random.randint(-self.variance_font, self.variance_font) for _ in range(0, len(self.word))]
         self.width_letters_cumulative = self.get_width_letters(Draw(canvas))
         self.shape_half_word: tuple = (self.width_letters_cumulative[-1] / 2, self.get_max_height(Draw(canvas)) / 2)
         self.average_diagonal_length = self.get_average_diagonal_length(Draw(canvas))
@@ -100,10 +103,10 @@ class CreateData:
             canvas.paste(im=canvas_letter, box=self.get_final_position_letter(i), mask=canvas_letter)
 
         if self.mode == "main":
-            canvas.save(self.path_folder_data / "data_all" / self.word.lower() / self.name_save)
+            canvas.save(path_folder_data / "data_all" / self.word.lower() / self.name_save)
 
         elif self.mode == "prime":
-            canvas.save(self.path_folder_data / self.analysis_settings["prime_data_folder"] / self.target / self.name_save)
+            canvas.save(path_folder_data / "prime_data" / self.target / self.name_save)
 
     def rotate(self, image, angle: int):
         image_array = np.array(image)
@@ -120,8 +123,7 @@ class CreateData:
 
     def get_width_letters(self, draw: Draw) -> list:
         shapes_letters: list = [
-            draw.textsize(self.word[i], font=self.get_zoomed_font(self.letters_size_font_shift[i]))
-            for i in range(0, len(self.word))
+            draw.textsize(self.word[i], font=self.get_zoomed_font(self.letters_size_font_shift[i])) for i in range(0, len(self.word))
         ]
         width_letters: list = [i[0] * self.coefficient_space for i in shapes_letters]
         width_letters.insert(0, 0)
@@ -129,8 +131,7 @@ class CreateData:
 
     def get_average_diagonal_length(self, draw: Draw) -> float:
         shapes_letters: list = [
-            draw.textsize(self.word[i], font=self.get_zoomed_font(self.letters_size_font_shift[i]))
-            for i in range(0, len(self.word))
+            draw.textsize(self.word[i], font=self.get_zoomed_font(self.letters_size_font_shift[i])) for i in range(0, len(self.word))
         ]
         return sum([math.sqrt(s[0] ** 2 + s[1] ** 2) for s in shapes_letters]) / len(shapes_letters)
 
@@ -178,35 +179,40 @@ class CreateData:
         return (int(position_letter[0]), int(position_letter[1]))
 
     def split_images_to_folders(self):
-        list_folders_in_data_all: list[str] = os.listdir(self.path_folder_data / "data_all")
+        list_folders_in_data_all: list[str] = os.listdir(path_folder_data / "data_all")
 
         for folder in list_folders_in_data_all:
-            list_images_in_folder: list = os.listdir(self.path_folder_data / "data_all" / folder)
-            self.ensure_folder_exists(self.path_folder_data / "data_train" / folder)
-            self.ensure_folder_exists(self.path_folder_data / "data_valid" / folder)
+            list_images_in_folder: list = os.listdir(path_folder_data / "data_all" / folder)
+            self.ensure_folder_exists(path_folder_data / "data_train" / folder)
+            self.ensure_folder_exists(path_folder_data / "data_valid" / folder)
 
             list_images_to_train_folder: list[str] = random.sample(
                 list_images_in_folder, int(len(list_images_in_folder) * self.coefficient_data_train)
             )
 
-            list_images_to_valid_folder: list[str] = [
-                i for i in list_images_in_folder if i not in list_images_to_train_folder
-            ]
+            list_images_to_valid_folder: list[str] = [i for i in list_images_in_folder if i not in list_images_to_train_folder]
 
             for image in list_images_to_train_folder:
-                source: Path = self.path_folder_data / "data_all" / folder / image
-                destiny: Path = self.path_folder_data / "data_train" / folder / image
+                source: Path = path_folder_data / "data_all" / folder / image
+                destiny: Path = path_folder_data / "data_train" / folder / image
                 shutil.move(source, destiny)
 
             for image in list_images_to_valid_folder:
-                source: Path = self.path_folder_data / "data_all" / folder / image
-                destiny: Path = self.path_folder_data / "data_valid" / folder / image
+                source: Path = path_folder_data / "data_all" / folder / image
+                destiny: Path = path_folder_data / "data_valid" / folder / image
                 shutil.move(source, destiny)
 
-        shutil.rmtree(self.path_folder_data / "data_all")
+        shutil.rmtree(path_folder_data / "data_all")
 
 
 def init_create_train_data(dummy: bool = False, random: bool = False):
+    """Create train data at the data folder.
+    Args:
+        dummy (bool, optional): make smaller dataset.
+        Defaults to False.
+        random (bool, optional): use random strings.
+        Defaults to False.
+    """
     if random:
         corpus = json.load(open(Path("assets", "random_strings.json"), "r"))
     else:
@@ -224,9 +230,7 @@ def init_create_train_data(dummy: bool = False, random: bool = False):
     }
 
     combinations_variation: list = (
-        list(product(*[corpus, fonts, sizes, positions])) * 80
-        if not dummy
-        else list(product(*[corpus, fonts, sizes, positions]))
+        list(product(*[corpus, fonts, sizes, positions])) * 8 if not dummy else list(product(*[corpus, fonts, sizes, positions]))
     )
 
     for i in range(len(combinations_variation)):
@@ -244,8 +248,6 @@ def init_create_train_data(dummy: bool = False, random: bool = False):
                     c[0].lower(),
                     c[1],
                     str(c[2]),
-                    # f"{int(self.position[0]):.5f}",
-                    # f"{int(self.position[1]):.5f}",
                     str(c[4]),
                     ".png",
                 ]
@@ -254,7 +256,7 @@ def init_create_train_data(dummy: bool = False, random: bool = False):
         for c in combinations_variation
     ]
 
-    generated_files = [file.name for file in Path("data", "data_all").rglob("*.png")]
+    generated_files = [file.name for file in (path_folder_data / "data_all").rglob("*.png")]
 
     if generated_files:
         combinations_variation = [c for c in combinations_variation if c["name_save"] not in tqdm(generated_files)]
@@ -284,12 +286,12 @@ def init_create_train_data(dummy: bool = False, random: bool = False):
         create.create_images()
     create.split_images_to_folders()
 
-    stats = add_compute_stats(torch_image_folder)(root=str(Path("data") / "data_train")).stats
+    stats = add_compute_stats(torch_image_folder)(root=str(path_folder_data / "data_train")).stats
     stats = {"mean": list(stats["mean"]), "std": list(stats["std"])}
     if random:
-        json.dump(stats, open(Path("data", "normalization_stats_random.json"), "w"))
+        json.dump(stats, open(path_folder_data / "normalization_stats_random.json", "w"))
     else:
-        json.dump(stats, open(Path("data", "normalization_stats.json"), "w"))
+        json.dump(stats, open(path_folder_data / "normalization_stats.json", "w"))
 
 
 def get_position_from_type(position_correction: bool, type: str, target: str, content: str):
@@ -316,6 +318,18 @@ def get_position_from_type(position_correction: bool, type: str, target: str, co
 
 
 def init_create_prime_data(position_correction: bool = False):
+    """
+    Create data for prime task where the strings are centered
+    and no rotation, translation or space between letters is
+    applied
+    Args:
+        position_correction (bool, optional): if True, the
+        position of the strings that are shorter than the
+        target string is corrected (e.g., "SUB3" type will
+        be moved to either the left or right). Defaults to
+        False.
+    """
+
     targets: list[str] = read_corpus(Path("assets", "2014-targets.txt"))
     primes: list[str] = read_corpus(Path("assets", "2014-prime-types.txt"))
     prime_data = json.load(open(Path("assets", "2014-prime-data.json"), "r"))

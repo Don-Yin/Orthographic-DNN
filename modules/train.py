@@ -2,7 +2,6 @@ import gc
 import json
 from pathlib import Path
 
-import neptune.new as neptune
 import torch
 from torch.utils.data import random_split
 from torch.utils.data.dataloader import DataLoader as data_loader
@@ -17,16 +16,30 @@ from utils.train.converging_average import ExpMovingAverage
 # added detach() to prevent memory leak. Remove if errors arises
 
 
+class LoopCounter:
+    """
+    Batch loop counter
+    """
+
+    def __init__(self, start=0):
+        self.count = start
+
+    def __call__(self):
+        self.count += 1
+        return self.count
+
+    def clear(self):
+        self.count = 0
+
+
 class Train:
     def __init__(self, hyperparameters: dict):
         self.hyperparameters = hyperparameters
         self.path_data: Path = Path("data") / "data_train"
-        # self.memory_tracker = SummaryTracker()  # track memory leak
         routine_settings()
 
     def fit(self):
         self.load_data()
-        self.init_neptune()
         self.set_batch_loaders()
         self.set_model()
 
@@ -37,61 +50,45 @@ class Train:
         )
 
         moving_average = ExpMovingAverage(0)
+        batch_loop_counter = LoopCounter(0)
 
         for epoch in range(self.hyperparameters["num_epochs"]):
             print(f"Epoch: {epoch}")
             self.model.train()
-            # train_losses_log = []
-            batch_num: int = 0
+            batch_loop_counter.clear()
             for batch in self.data_train_batch_loader:
-                if batch_num % self.hyperparameters["batch_report_every"] == 0:
-                    print(f"Reporting batch: {batch_num}")
-                    train_loss_and_accuracy = self.get_batch_loss_and_accuracy(batch)
-                    self.neptune_run["train/accuracy_top_1"].log(train_loss_and_accuracy["batch_accuracy_top_1"])
-                    self.neptune_run["train/accuracy_top_5"].log(train_loss_and_accuracy["batch_accuracy_top_5"])
-                    self.neptune_run["train/loss"].log(train_loss_and_accuracy["batch_loss"])
-
+                if batch_loop_counter.count % self.hyperparameters["batch_report_every"] == 0:
+                    print(f"Reporting batch: {batch_loop_counter.count}")
                     test_loss_and_accuracy = self.get_batch_loss_and_accuracy(next(iter(self.data_test_batch_loader)))
-                    self.neptune_run["test/accuracy_top_1"].log(test_loss_and_accuracy["batch_accuracy_top_1"])
-                    self.neptune_run["test/accuracy_top_5"].log(test_loss_and_accuracy["batch_accuracy_top_5"])
-                    self.neptune_run["test/loss"].log(test_loss_and_accuracy["batch_loss"])
-
                     moving_average(test_loss_and_accuracy["batch_loss"])
-                    self.neptune_run["test/loss_moving_average"].log(moving_average.avg)
-
                     gc.collect(generation=2)  # collect garbage
 
                     if moving_average.avg < self.hyperparameters["min_moving_average_threshold"]:
                         self.save_params()
-                        self.neptune_run.stop()
-                        raise Exception(f"Training finished: {self.hyperparameters['model_tag']}")
+                        raise ValueError(f"Training finished: {self.hyperparameters['model_tag']}")
 
-                batch_num += 1
+                batch_loop_counter()
                 loss = self.get_train_loss(batch)
                 # train_losses_log.append(loss)
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
 
-                if batch_num % self.hyperparameters["batch_save_every"] == 0:
+                if batch_loop_counter.count % self.hyperparameters["batch_save_every"] == 0:
                     # self.memory_tracker.print_diff()
                     self.save_params()
                     print(f"Params saved: {self.hyperparameters['model_tag']}")
-                    batch_num = 0
-
-            # summary_epoch = self.get_logger_test_loss_and_accuracy(self.data_test_batch_loader)
-            # summary_epoch["train_loss"] = torch.stack(train_losses_log).mean().detach().item()
-            # self.neptune_run["epoch/accuracy_top_1"].log(summary_epoch["test_accuracy_top_1"])
-            # self.neptune_run["epoch/loss"].log(summary_epoch["test_loss"])
-            # self.print_epoch(epoch, summary_epoch)
-        self.neptune_run.stop()
+                    batch_loop_counter.clear()
 
     def read_list_corpus(self):
         corpus: str = open(Path("assets", "1000-corpus.txt"), "r").read()
         return [w for w in corpus.split("\n") if w != ""]
 
     def load_data(self, whether_normalize: bool = True, subset: tuple = False):
-        normalization_stats = json.load(open(Path("data", "normalization_stats.json"), "r"))
+        try:
+            normalization_stats = json.load(open(Path("data", "normalization_stats.json"), "r"))
+        except FileNotFoundError:
+            normalization_stats = None
 
         if subset and whether_normalize:
             corpus: list[str] = self.read_list_corpus()
@@ -104,14 +101,6 @@ class Train:
         else:
             # when not using add_compute_stats, the data has to go through transforms.Compose([transforms.Resize(), other transforms stuff]), which has to be passed as one of the parameters as torch_image_folder(transform=transforms.Compose([transforms.Resize(), other transforms stuff]))
             self.data = add_compute_stats(torch_image_folder)(root=str(Path("data") / "data_train"), stats=normalization_stats)
-
-    def init_neptune(self):
-        neptune_token = json.load(open(Path("assets", "neptune_token.json"), "r"))
-        self.neptune_run = neptune.init(
-            project=neptune_token["project"],
-            api_token=neptune_token["api_token"],
-        )
-        self.neptune_run["hyperparameters"] = self.hyperparameters
 
     def set_batch_loaders(self):
         data_train, data_test = random_split(
@@ -156,14 +145,6 @@ class Train:
         accuracy_top_5 = torch.tensor(torch.sum(torch.eq(predictions_top_5, labels).t()).detach().item() / len(labels))
         return {"batch_loss": loss.detach(), "batch_accuracy_top_1": accuracy_top_1, "batch_accuracy_top_5": accuracy_top_5}
 
-    # def print_epoch(self, epoch, result):
-    #     print(
-    #         "Epoch [{}], train_loss: {:.4f}, test_loss: {:.4f}, test_accuracy_top_1: {:.4f}".format(
-    #             epoch, result["train_loss"], result["test_loss"], result["test_accuracy_top_1"]
-    #         )
-    #     )
-
 
 if __name__ == "__main__":
-    # model_summary(pnasnet, input_size=(3, 224, 224))
     pass

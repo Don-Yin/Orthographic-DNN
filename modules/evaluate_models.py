@@ -9,6 +9,7 @@ from pathlib import Path
 import psutil
 import torch
 import torchvision
+from torchvision import models
 from torchvision.datasets import ImageFolder as torch_image_folder
 from tqdm import tqdm
 from utils.data_generate.read_corpus import read_corpus
@@ -18,7 +19,11 @@ from utils.evaluate.evaluate_model import Evaluate
 
 
 def restart_program():
-    """Restarts the current program, with file objects and descriptors cleanup"""
+    """
+    Restarts the current program, with file objects and descriptors cleanup
+    Note that this is extremely hacky and only used for when the RAMs are 
+    insufficient.
+    """
     try:
         p = psutil.Process(os.getpid())
         for handler in p.open_files() + p.connections():
@@ -31,22 +36,18 @@ def restart_program():
 
 
 class BatchEvaluate:
-    """_summary_
+    """
     returns: dataframe -
     cols:
         model, word,
         prime_type_1 (ID), prime_type_2,
-
         cosine_similarity (penultimate),
         cosine_similarity (classification)
-
-    create a list of dicts and transform into dataframe:
-    https://stackoverflow.com/questions/20638006/convert-list-of-dictionaries-to-a-pandas-dataframe
     """
 
     def __init__(self):
         self.analysis_settings = json.load(open(Path("analysis_settings.json"), "r"))
-        self.path_output = Path("assets", "model_output", "normal.json")
+        self.path_output = Path("assets", "model_output", "random_strings.json")
         self.validate = False
         self.use_checkpoint = False
         if self.validate:
@@ -67,9 +68,14 @@ class BatchEvaluate:
         self.selected_network_names = json.load(open(Path("assets", "dnn_model_labels.json"), "r")).keys()
 
     def read_prime_data(self):
+        try:
+            normalize_stats = json.load(open(Path("data", "normalization_stats.json"), "r"))
+        except FileNotFoundError:
+            normalize_stats = None
+
         self.prime_data = add_compute_stats(torch_image_folder)(
             root=str(Path("data") / self.analysis_settings["prime_data_folder"]),
-            stats=json.load(open(Path("data", "normalization_stats.json"), "r")),
+            stats=normalize_stats,
         )
 
     def make_combinations(self):
@@ -89,7 +95,7 @@ class BatchEvaluate:
         )
 
     def main(self):
-        """_summary_
+        """
         Add similarity stats to the main dictionary.
         """
         try:
@@ -130,18 +136,17 @@ class BatchEvaluate:
             print(f"Accuracy: {correct/10}%")
 
     def load_models(self):
-        use_pretrain = not self.use_checkpoint
-        self.alexnet = torchvision.models.alexnet(pretrained=use_pretrain)
-        self.densenet169 = torchvision.models.densenet169(pretrained=use_pretrain)
-        self.efficientnet_b1 = torchvision.models.efficientnet_b1(pretrained=use_pretrain)
-        self.resnet50 = torchvision.models.resnet50(pretrained=use_pretrain)
-        self.resnet101 = torchvision.models.resnet101(pretrained=use_pretrain)
-        self.vgg16 = torchvision.models.vgg16(pretrained=use_pretrain)
-        self.vgg19 = torchvision.models.vgg19(pretrained=use_pretrain)
-        self.vit_b_16 = torchvision.models.vit_b_16(pretrained=use_pretrain)
-        self.vit_b_32 = torchvision.models.vit_b_32(pretrained=use_pretrain)
-        self.vit_l_16 = torchvision.models.vit_l_16(pretrained=use_pretrain)
-        self.vit_l_32 = torchvision.models.vit_l_32(pretrained=use_pretrain)
+        self.alexnet = torchvision.models.alexnet(weights=models.AlexNet_Weights.DEFAULT)
+        self.densenet169 = torchvision.models.densenet169(weights=models.DenseNet169_Weights.DEFAULT)
+        self.efficientnet_b1 = torchvision.models.efficientnet_b1(weights=models.EfficientNet_B1_Weights.DEFAULT)
+        self.resnet50 = torchvision.models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+        self.resnet101 = torchvision.models.resnet101(weights=models.ResNet101_Weights.DEFAULT)
+        self.vgg16 = torchvision.models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+        self.vgg19 = torchvision.models.vgg19(weights=models.VGG19_Weights.DEFAULT)
+        self.vit_b_16 = torchvision.models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
+        self.vit_b_32 = torchvision.models.vit_b_32(weights=models.ViT_B_32_Weights.DEFAULT)
+        self.vit_l_16 = torchvision.models.vit_l_16(weights=models.ViT_L_16_Weights.DEFAULT)
+        self.vit_l_32 = torchvision.models.vit_l_32(weights=models.ViT_L_32_Weights.DEFAULT)
 
         if self.use_checkpoint:
             for model in self.selected_network_names:
