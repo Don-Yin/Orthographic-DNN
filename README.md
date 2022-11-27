@@ -2,6 +2,7 @@
 This is the code repository for the research project *[Convolutional Neural Networks Trained to Identify Words Provide a Good Account of Visual Form Priming Effects](https://www.researchsquare.com/article/rs-2289281/v1)*
 
 *Project objective*: comparing human orthographic perception with visual DNN models (CNNs and ViTs).
+
 *Project outcome*: CNNs did a good job in predicting the pattern of human priming scores across conditions, with correlations ranging from τ = .49 (AlexNet) to τ = .71. (ResNet101) with all p-values < .01. The CNNs performed similarly to the various orthographic coding schemes word recognition models, and often better. This contrasts with the relatively poor performance of the Transformer networks, with τ ranging from .25 to .38.
 
 ## Rationale
