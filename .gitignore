@@ -3,7 +3,6 @@
 .VSCodeCounter/
 
 # data files
-*.png
 
 # system
 .DS_Store
