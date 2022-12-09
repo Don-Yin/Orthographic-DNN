@@ -1,6 +1,7 @@
 .venv
 .vscode
 .VSCodeCounter/
+TASKS.json
 
 # data files
 

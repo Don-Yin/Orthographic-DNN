@@ -12,16 +12,17 @@ This is the code repository for the research project *[Convolutional Neural Netw
    For a human participant, the similarity $sim(s_1, s_2)$ of two word strings $s_1$ (the target) and $s_2$ (the prime) is measured using a Lexical Decision Task (LDT), where $s_1$ and $s_2$ are presented one at a time, with a fixation cross in between, and the participant has to decide as quickly as possible whether $s_1$ is a word or not. The reaction time is compared to that when the target word is presented with an arbitrary random string $s_3$ as prime. The similarity $sim(s_1, s_2)$ is calculated as $sim(s_1, s_2) = RT_{s_1|s_2} - RT_{s_1|s_3}$. For each condition $C$ and each prime string $s_2$, the mean similarity $\bar{sim}(s_1, C)$ is calculated by averaging the similarity $sim(s_1, s_2)$ over the 420 prime strings $s_2$ for $C$.
 3. Measuring models' perceptual similarity of words or letter strings:
    For the models, the similarity $sim(s_1, s_2)$ is measured by the cosine similarity $sim(s_1, s_2) = \cos(s_1, s_2)$ between the two vectors $s_1$ and $s_2$ where $s_1$ and $s_2$ are the flattened penulimate layer outputs when the models are fed with two images of the two strings. For each condition  $C$ and each prime string $s_2$, the mean similarity $\bar{sim}(s_1, C)$ is calculated by averaging the similarity $sim(s_1, s_2)$ over the 420 prime strings $s_2$ for $C$.
-   <img width="956" alt="feature_extraction" src="https://user-images.githubusercontent.com/65135356/204151711-f23a0ce7-2159-4f99-a5c0-d63e946c2005.png">
-
+   
+   ![Example](src/assets/feature_extraction.png)
+   
 4. Comparing the perceptual patterns between humans and models:
    Kendall's rank correlation coefficient $\tau$ is used to measure the correlation between the human and model priming scores across conditions. The human priming scores are taken from the Form Priming Project, and the model priming scores are calculated by the code in this repository. For a given model $M$, its similarity with human priming is calculated as $\tau(M) = \sum_{C}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})\text{sign}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})$
    where $\bar{sim}(s_1, C)_{M}$ and $\bar{sim}(s_1, C)_{human}$ are the mean similarity scores of the model $M$ and the human participant, respectively, for condition $C$.
 
 ## Data
 1. the Fonts used to generate the data are in `assets/fonts` stored as `.ttf` files.
-2. The human priming data is sourced from [the Form Priming Project (FPP)](https://link.springer.com/article/10.3758/s13428-013-0442-y), available at [this link](https://files.warwick.ac.uk/jadelman2/browse#FPP) or [here](assets/adelman.xlsx) or [here](assets/adelman.csv).
-3. You can either download the [training data](https://drive.google.com/file/d/1w6m_57z6lVh97Cr6MJPNQbKYjh877zbL/view?usp=share_link) and the [prime data](https://drive.google.com/file/d/1qDyqdSIzwRQlqmi8kUJ34_G4Dr-qvYzZ/view?usp=sharing) as zip files or run the `generate_data.py` script to generate as many images as you like. The configurations of letter translation, rotation, variation s of font and sizes are at [here](utils/data_generate/main.py). The zip file of the training data contains 800,000 images which should be enough for all models used in the current research.
+2. The human priming data is sourced from [the Form Priming Project (FPP)](https://link.springer.com/article/10.3758/s13428-013-0442-y), available at [this link](https://files.warwick.ac.uk/jadelman2/browse#FPP) or [here](src/assets/adelman.xlsx) or [here](src/assets/adelman.csv).
+3. You can either download the [training data](https://drive.google.com/file/d/1w6m_57z6lVh97Cr6MJPNQbKYjh877zbL/view?usp=share_link) and the [prime data](https://drive.google.com/file/d/1qDyqdSIzwRQlqmi8kUJ34_G4Dr-qvYzZ/view?usp=sharing) as zip files or run the `generate_data.py` script to generate as many images as you like. The configurations of letter translation, rotation, variation s of font and sizes are at [here](src/utils/data_generate/main.py). The zip file of the training data contains 800,000 images which should be enough for all models used in the current research.
 
 ## Setup
 1. install `python==3.10.4`
