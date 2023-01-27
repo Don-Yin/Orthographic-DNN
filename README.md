@@ -45,7 +45,7 @@ The tested models are [Alexnet](https://papers.nips.cc/paper/2012/hash/c399862d3
 The project was conducted under the auspices of the [University of Bristol Mind & Machine Lab](https://mindandmachine.blogs.bristol.ac.uk/) and supported by [European Research Council (ERC)](https://erc.europa.eu/homepage) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No 741134).
 
 ## Contact
-For further instructions and enquiries, please contact [Don Yin](don_yin@outlook.com).
+For further instructions and enquiries, please contact [Don Yin](mailto:don_yin@outlook.com).
 
 ## License
 MIT License (see LICENSE file)
