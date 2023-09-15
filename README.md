@@ -13,7 +13,7 @@ This is the code repository for the research project *[Convolutional Neural Netw
 3. Measuring models' perceptual similarity of words or letter strings:
    For the models, the similarity $sim(s_1, s_2)$ is measured by the cosine similarity $sim(s_1, s_2) = \cos(s_1, s_2)$ between the two vectors $s_1$ and $s_2$ where $s_1$ and $s_2$ are the flattened penulimate layer outputs when the models are fed with two images of the two strings. For each condition  $C$ and each prime string $s_2$, the mean similarity $\bar{sim}(s_1, C)$ is calculated by averaging the similarity $sim(s_1, s_2)$ over the 420 prime strings $s_2$ for $C$.
    
-   ![Example](src/assets/feature_extraction.png)
+   ![Example](https://github.com/Don-Yin/Orthographic-DNN/blob/456b6b1c2a78609f151b304200189a9edef89eb4/feature_extraction.png)
    
 4. Comparing the perceptual patterns between humans and models:
    Kendall's rank correlation coefficient $\tau$ is used to measure the correlation between the human and model priming scores across conditions. The human priming scores are taken from the Form Priming Project, and the model priming scores are calculated by the code in this repository. For a given model $M$, its similarity with human priming is calculated as $\tau(M) = \sum_{C}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})\text{sign}(\bar{sim}(s_1, C)_M - \bar{sim}(s_1, C)_{human})$
