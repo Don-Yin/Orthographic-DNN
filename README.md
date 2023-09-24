@@ -1,7 +1,7 @@
 # Orthographic-DNN
 This is the code repository for the research project *[Convolutional Neural Networks Trained to Identify Words Provide a Good Account of Visual Form Priming Effects](https://link.springer.com/article/10.1007/s42113-023-00172-7)*
 
-[![Click to see Video Demo](demo.png)](https://youtu.be/PEvwzwo6gFM)
+[![Click to see Video Demo](_demo.png)](https://youtu.be/PEvwzwo6gFM)
 
 *Project objective*: comparing human orthographic perception with visual DNN models (CNNs and ViTs).
 
